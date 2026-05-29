@@ -26,7 +26,7 @@
 
 @layer base {
   body {
-    background: linear-gradient(180deg, #040512 0%, #0d052c 50%, #06040f 100%);
+    background: #000000;
     color: #eeedef;
     min-height: 100vh;
   }
@@ -47,11 +47,11 @@
   }
 
   .page-bg {
-    background: linear-gradient(180deg, #040512 0%, #0d052c 50%, #06040f 100%);
+    background: #000000;
   }
 
   .btn-brand {
-    background: linear-gradient(105deg, #a749c5 0%, #9128da 100%);
+    background: linear-gradient(105deg, #9128da 0%, #7c1fc4 100%);
     color: #ffffff;
     font-weight: 600;
     border-radius: 9999px;
@@ -121,7 +121,7 @@
   }
 
   .pill-active {
-    background: linear-gradient(105deg, #a749c5 0%, #9128da 100%);
+    background: linear-gradient(105deg, #9128da 0%, #7c1fc4 100%);
     color: #ffffff;
     border: 1px solid transparent;
     border-radius: 9999px;
@@ -170,6 +170,76 @@
     );
     filter: blur(80px);
     pointer-events: none;
+  }
+
+  /* Hero "purple spray": several overlapping radial blooms in different purple
+     ranges (magenta → purple → violet → deep) that, once blurred, read as the
+     out-of-focus studio backdrop behind the cup cluster. This is what gives the
+     "multiple ranges of purple" look from the source photo. */
+  .hero-spray {
+    position: absolute;
+    inset: -12%;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        38% 42% at 56% 28%,
+        rgba(210, 74, 235, 0.62),
+        transparent 64%
+      ),
+      radial-gradient(
+        52% 52% at 47% 42%,
+        rgba(146, 40, 218, 0.55),
+        transparent 68%
+      ),
+      radial-gradient(
+        72% 66% at 62% 54%,
+        rgba(93, 45, 169, 0.5),
+        transparent 72%
+      ),
+      radial-gradient(
+        100% 92% at 50% 50%,
+        rgba(42, 15, 82, 0.55),
+        transparent 82%
+      );
+    filter: blur(30px);
+  }
+
+  /* Defocused light specks scattered over the spray — the "particles" of the
+     purple haze. Each background layer is one soft disc; the whole field is
+     blurred (out of focus) and radially masked so it fades into the dark. */
+  .hero-bokeh {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.85;
+    filter: blur(2.5px);
+    background-repeat: no-repeat;
+    background-image:
+      radial-gradient(circle, rgba(228, 158, 255, 0.55) 0 36%, transparent 62%),
+      radial-gradient(circle, rgba(201, 74, 230, 0.5) 0 40%, transparent 64%),
+      radial-gradient(circle, rgba(168, 73, 197, 0.45) 0 42%, transparent 66%),
+      radial-gradient(circle, rgba(228, 158, 255, 0.4) 0 38%, transparent 64%),
+      radial-gradient(circle, rgba(146, 40, 218, 0.5) 0 44%, transparent 66%),
+      radial-gradient(circle, rgba(214, 130, 255, 0.42) 0 36%, transparent 60%),
+      radial-gradient(circle, rgba(178, 49, 202, 0.4) 0 40%, transparent 64%),
+      radial-gradient(circle, rgba(228, 158, 255, 0.5) 0 34%, transparent 58%),
+      radial-gradient(circle, rgba(146, 40, 218, 0.4) 0 42%, transparent 66%),
+      radial-gradient(circle, rgba(201, 74, 230, 0.38) 0 40%, transparent 64%),
+      radial-gradient(circle, rgba(228, 158, 255, 0.45) 0 32%, transparent 56%),
+      radial-gradient(circle, rgba(168, 73, 197, 0.36) 0 44%, transparent 68%),
+      radial-gradient(circle, rgba(214, 130, 255, 0.5) 0 30%, transparent 54%),
+      radial-gradient(circle, rgba(146, 40, 218, 0.34) 0 46%, transparent 70%),
+      radial-gradient(circle, rgba(228, 158, 255, 0.4) 0 34%, transparent 58%),
+      radial-gradient(circle, rgba(201, 74, 230, 0.3) 0 42%, transparent 66%);
+    background-position:
+      19% 20%, 67% 13%, 43% 38%, 82% 28%, 32% 60%, 57% 50%, 11% 44%, 75% 58%,
+      49% 16%, 89% 42%, 27% 31%, 62% 70%, 37% 11%, 71% 40%, 15% 66%, 54% 33%;
+    background-size:
+      88px 88px, 58px 58px, 128px 128px, 48px 48px, 108px 108px, 42px 42px,
+      68px 68px, 78px 78px, 34px 34px, 98px 98px, 54px 54px, 62px 62px,
+      46px 46px, 118px 118px, 38px 38px, 28px 28px;
+    -webkit-mask: radial-gradient(72% 70% at 54% 38%, #000 35%, transparent 78%);
+    mask: radial-gradient(72% 70% at 54% 38%, #000 35%, transparent 78%);
   }
 
   .eyebrow {

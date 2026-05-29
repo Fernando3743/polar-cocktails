@@ -3,6 +3,7 @@ export { WhatsAppIcon } from "./WhatsAppIcon";
 export { SnowflakeIcon } from "./SnowflakeIcon";
 export { CupIcon } from "./CupIcon";
 export { PlusIcon } from "./PlusIcon";
+export { ArrowRightIcon } from "./ArrowRightIcon";
 export { ScooterIcon } from "./ScooterIcon";
 export { MapPinIcon } from "./MapPinIcon";
 export { PhoneIcon } from "./PhoneIcon";

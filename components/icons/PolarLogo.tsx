@@ -77,14 +77,21 @@ export function PolarLogo({ className }: IconProps) {
         fill="none"
       >
         {/* Domed lid */}
-        <path d="M 41.5 46 Q 50 39 58.5 46" />
-        <path d="M 40.5 46 H 59.5" />
+        <path d="M 40.5 45.5 Q 50 37.5 59.5 45.5" />
+        <path d="M 39.5 45.5 H 60.5" />
         {/* Straw */}
-        <path d="M 53.5 44 L 56 33" />
-        {/* Tumbler body (slightly tapered) */}
-        <path d="M 42 46 L 44 66 Q 44 68 46 68 H 54 Q 56 68 56 66 L 58 46" />
+        <path d="M 53.5 43 L 56.5 32" />
+        {/* Tumbler body (fuller, slightly tapered) */}
+        <path d="M 40.5 45.5 L 43 67 Q 43 69 45 69 H 55 Q 57 69 57 67 L 59.5 45.5" />
         {/* Granizado fill line */}
-        <path d="M 43 54 H 57" />
+        <path d="M 42 54 H 58" />
+      </g>
+      {/* Granizado bubble texture below the fill line */}
+      <g fill="currentColor">
+        <circle cx="47" cy="59" r="1.2" />
+        <circle cx="51.5" cy="61.5" r="1" />
+        <circle cx="53" cy="57.5" r="1.1" />
+        <circle cx="48.5" cy="63.5" r="0.9" />
       </g>
     </svg>
   );

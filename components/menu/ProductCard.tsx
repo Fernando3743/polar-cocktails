@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { PlaceholderCup, PlusIcon } from "@/components/icons";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatCop } from "@/lib/format";
@@ -18,25 +19,28 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <div className="glass-card flex flex-col p-4">
+    <div className="flex flex-col p-3">
       {/* Visual: real photo when available, else a generated granizado cup. */}
-      <div className="mb-4 flex h-[188px] items-center justify-center">
+      <div className="relative mb-3 h-[150px]">
         {product.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={product.imageUrl}
             alt={product.name}
-            className="h-[188px] w-full object-contain"
+            fill
+            sizes="(min-width: 1024px) 180px, 40vw"
+            className="object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.5)]"
           />
         ) : (
-          <PlaceholderCup
-            accentColor={product.accentColor}
-            className="h-[188px] w-auto drop-shadow-[0_14px_28px_rgba(0,0,0,0.45)]"
-          />
+          <div className="flex h-full items-center justify-center">
+            <PlaceholderCup
+              accentColor={product.accentColor}
+              className="h-full w-auto drop-shadow-[0_14px_28px_rgba(0,0,0,0.45)]"
+            />
+          </div>
         )}
       </div>
 
-      <h3 className="font-body text-[18px] font-semibold leading-tight text-white">
+      <h3 className="font-body text-[16px] font-semibold leading-tight text-white">
         {product.name}
       </h3>
       <p className="mt-1.5 text-[13px] leading-snug text-polar-muted">
@@ -51,13 +55,9 @@ export function ProductCard({ product }: ProductCardProps) {
           type="button"
           onClick={handleAdd}
           aria-label={`Agregar ${product.name} al carrito`}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-[filter] hover:brightness-110"
-          style={{
-            background: "linear-gradient(105deg,#A749C5 0%,#9128DA 100%)",
-            boxShadow: "0 6px 18px rgba(146,40,218,0.40)",
-          }}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.40)] transition-[filter] hover:brightness-110"
         >
-          <PlusIcon className="h-[18px] w-[18px]" />
+          <PlusIcon className="h-4 w-4" />
         </button>
       </div>
     </div>

@@ -97,13 +97,52 @@ export function PlaceholderCup({ accentColor, className }: PlaceholderCupProps) 
         />
       </g>
 
-      {/* Translucent domed lid */}
-      <path d="M18 60 Q60 22 102 60 Z" fill="#ffffff" fillOpacity="0.16" />
+      {/* Circular POLAR brand badge on the cup body */}
+      <g>
+        <circle cx="60" cy="104" r="15.5" fill="#0b0712" />
+        <circle
+          cx="60"
+          cy="104"
+          r="15.5"
+          fill="none"
+          stroke="#ffffff"
+          strokeOpacity="0.55"
+          strokeWidth="1.1"
+        />
+        <text
+          x="60"
+          y="102"
+          textAnchor="middle"
+          fontFamily="var(--font-poppins, 'Poppins', sans-serif)"
+          fontSize="6"
+          fontWeight="700"
+          letterSpacing="0.5"
+          fill="#ffffff"
+        >
+          POLAR
+        </text>
+        <text
+          x="60"
+          y="110"
+          textAnchor="middle"
+          fontFamily="var(--font-poppins, 'Poppins', sans-serif)"
+          fontSize="3.4"
+          fontWeight="600"
+          letterSpacing="0.8"
+          fill="#ffffff"
+          fillOpacity="0.8"
+        >
+          COCKTAILS
+        </text>
+      </g>
+
+      {/* Translucent purple domed lid */}
+      <path d="M18 60 Q60 22 102 60 Z" fill="#9128DA" fillOpacity="0.38" />
       <path
         d="M18 60 Q60 22 102 60"
-        stroke="#ffffff"
+        stroke="#D9B8FF"
         strokeWidth="2"
-        strokeOpacity="0.45"
+        strokeOpacity="0.6"
         fill="none"
       />
       {/* Lid rim */}
@@ -113,8 +152,8 @@ export function PlaceholderCup({ accentColor, className }: PlaceholderCupProps) 
         width="88"
         height="7"
         rx="3.5"
-        fill="#ffffff"
-        fillOpacity="0.3"
+        fill="#9128DA"
+        fillOpacity="0.5"
       />
     </svg>
   );

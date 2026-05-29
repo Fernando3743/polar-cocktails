@@ -13,18 +13,24 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-polar-bg/70 backdrop-blur-md">
-      <Container>
-        <nav className="flex h-[88px] items-center justify-between">
-          {/* Left: logo lockup */}
+      {/* Subtle right-side purple glow behind the bar */}
+      <div
+        className="pointer-events-none absolute right-0 top-0 h-full w-[440px]"
+        style={{
+          background:
+            "radial-gradient(120% 140% at 78% 30%,rgba(146,40,218,0.18) 0%,transparent 60%)",
+        }}
+        aria-hidden="true"
+      />
+      <Container className="relative z-10">
+        <nav className="flex h-[84px] items-center justify-between">
+          {/* Left: brand badge */}
           <Link
             href="/"
-            className="flex items-center gap-3"
+            className="flex items-center"
             aria-label={`${SITE_NAME} - Inicio`}
           >
-            <PolarLogo className="h-14 w-14 text-polar-text" />
-            <span className="font-display text-lg font-bold tracking-[0.18em] text-polar-text uppercase">
-              {SITE_NAME}
-            </span>
+            <PolarLogo className="h-[68px] w-[68px] text-polar-text" />
           </Link>
 
           {/* Center: nav links */}
