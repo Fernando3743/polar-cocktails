@@ -15,100 +15,96 @@ const SOCIAL_LINKS = [
   { label: "TikTok", href: "#", Icon: TikTokIcon },
 ];
 
-// Real product photos over an accent-tinted tile so the Instagram grid is on-brand.
 const INSTAGRAM_TILES = [
-  { src: "/images/polar-cocktail-product-transparent.png", accent: "#2EA6E0" },
-  { src: "/images/polar-cocktail-purple-transparent.png", accent: "#7B2FB0" },
-  { src: "/images/polar-cocktail-golden-transparent.png", accent: "#E0A52E" },
-  { src: "/images/polar-cocktail-red-transparent.png", accent: "#E0457A" },
-  { src: "/images/polar-cocktail-mint-cookie-transparent.png", accent: "#3FB58A" },
+  "/images/instagram-prototype-1.png",
+  "/images/instagram-prototype-2.png",
+  "/images/instagram-prototype-3.png",
+  "/images/instagram-prototype-4.png",
+  "/images/instagram-prototype-5.png",
 ];
 
 export function Footer() {
   return (
-    <footer className="bg-polar-bg3">
+    <footer className="bg-transparent pt-[34px]">
       <Container>
-        <div className="grid grid-cols-1 gap-8 pt-10 pb-8 md:grid-cols-[1.2fr_1fr_1.4fr] md:gap-8">
-          {/* Column 1: logo + blurb + social */}
-          <div className="flex flex-col gap-4">
-            <Link
-              href="/"
-              className="flex items-center"
-              aria-label={`${SITE_NAME} - Inicio`}
-            >
-              <PolarLogo className="h-20 w-20 text-polar-text" />
-            </Link>
-            <p className="max-w-[220px] text-[14px] leading-relaxed text-polar-muted">
-              Cócteles granizados con una explosión de frescura. Hechos para
-              compartir, vivir y disfrutar.
-            </p>
-            <div className="flex items-center gap-2.5">
-              {SOCIAL_LINKS.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(167,73,197,0.25)] bg-[rgba(15,10,34,0.6)] text-polar-purple-light transition-colors hover:border-[rgba(167,73,197,0.55)] hover:text-polar-text"
+        <div className="border-t border-[rgba(255,255,255,0.13)]">
+          <div className="grid grid-cols-1 gap-8 pt-[20px] pb-[4px] md:grid-cols-[290px_150px_1fr] md:gap-[42px]">
+            <div className="flex flex-col gap-[14px]">
+              <div className="flex items-center gap-[28px]">
+                <Link
+                  href="/"
+                  className="flex items-center"
+                  aria-label={`${SITE_NAME} - Inicio`}
                 >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Column 2: quick links */}
-          <div className="flex flex-col gap-3">
-            <h3 className="font-display text-[16px] font-semibold text-polar-text">
-              Enlaces rápidos
-            </h3>
-            <ul className="flex flex-col gap-2">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-[14px] text-polar-muted transition-colors hover:text-polar-text"
+                  <PolarLogo className="h-[82px] w-[82px] text-polar-text" />
+                </Link>
+                <p className="max-w-[176px] text-[13px] leading-[1.48] text-[#B9B2C6]">
+                  Cócteles granizados con una explosión de frescura. Hechos
+                  para compartir, vivir y disfrutar.
+                </p>
+              </div>
+              <div className="flex items-center gap-[31px] pl-[16px]">
+                {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    aria-label={label}
+                    className="inline-flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[rgba(15,10,34,0.65)] text-polar-purple-light transition-colors hover:text-polar-text"
                   >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+                    <Icon className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
+            </div>
 
-          {/* Column 3: Instagram grid */}
-          <div className="flex flex-col gap-4">
-            <h3 className="font-display text-[16px] font-semibold text-polar-text">
-              Síguenos en Instagram
-            </h3>
-            <div className="grid grid-cols-5 gap-[10px]">
-              {INSTAGRAM_TILES.map(({ src, accent }, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  aria-label={`Síguenos en Instagram — foto ${i + 1}`}
-                  className="group relative aspect-square overflow-hidden rounded-[11px] border border-[rgba(167,73,197,0.18)]"
-                  style={{
-                    background: `radial-gradient(120% 120% at 50% 12%, ${accent}55 0%, #0f0a22 72%)`,
-                  }}
-                >
-                  <Image
-                    src={src}
-                    alt=""
-                    fill
-                    sizes="120px"
-                    className="object-contain p-1.5 transition-transform group-hover:scale-105"
-                  />
-                </a>
-              ))}
+            <div className="flex flex-col gap-[12px]">
+              <h3 className="font-display text-[13px] font-semibold text-polar-text">
+                Enlaces rápidos
+              </h3>
+              <ul className="flex flex-col gap-[4px]">
+                {NAV_LINKS.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-[12px] leading-[1.25] text-[#B9B2C6] transition-colors hover:text-polar-text"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col gap-[13px]">
+              <h3 className="font-display text-[13px] font-semibold text-polar-text">
+                Síguenos en Instagram
+              </h3>
+              <div className="grid grid-cols-5 gap-[11px]">
+                {INSTAGRAM_TILES.map((src, i) => (
+                  <a
+                    key={i}
+                    href="#"
+                    aria-label={`Síguenos en Instagram - foto ${i + 1}`}
+                    className="group relative h-[84px] overflow-hidden rounded-[6px] border border-[rgba(167,73,197,0.18)]"
+                  >
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="90px"
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom bar */}
-        <div className="border-t border-[rgba(167,73,197,0.15)] py-4">
-          <p className="text-center text-[13px] text-polar-dim">
-            © 2024 Polar Cocktails. Todos los derechos reservados.
-          </p>
+          <div className="border-t border-[rgba(255,255,255,0.08)] py-[10px]">
+            <p className="text-center text-[12px] text-polar-dim">
+              © 2024 Polar Cocktails. Todos los derechos reservados.
+            </p>
+          </div>
         </div>
       </Container>
     </footer>

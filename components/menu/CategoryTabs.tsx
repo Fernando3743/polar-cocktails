@@ -18,7 +18,7 @@ export function CategoryTabs({
   const tabs = [{ slug: "all", name: "Todos" }, ...categories];
 
   return (
-    <div className="flex flex-wrap justify-center gap-3">
+    <div className="flex flex-wrap justify-center gap-[14px]">
       {tabs.map((tab) => {
         const isActive = active === tab.slug;
         return (
@@ -28,7 +28,7 @@ export function CategoryTabs({
             onClick={() => onChange(tab.slug)}
             aria-pressed={isActive}
             className={clsx(
-              "text-sm",
+              "h-[34px] min-w-[86px] px-[21px] text-[13px]",
               isActive ? "pill-active" : "pill-inactive",
             )}
           >

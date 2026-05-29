@@ -8,7 +8,7 @@ import {
 import { ADDRESS_LINES, MAPS_URL, whatsappUrl } from "@/lib/config";
 
 const ctaClass =
-  "mt-2 inline-flex items-center gap-1.5 text-[14px] font-semibold text-polar-magenta transition-colors hover:text-polar-purple-light";
+  "mt-[9px] inline-flex items-center gap-1.5 text-[14px] font-semibold text-polar-magenta transition-colors hover:text-polar-purple-light";
 
 const DELIVERY_MESSAGE =
   "¡Hola Polar! Quiero pedir un domicilio de cócteles granizados.";
@@ -17,19 +17,18 @@ const CONTACT_MESSAGE =
 
 export function InfoRow() {
   return (
-    <section className="py-7">
+    <section className="pt-[24px] pb-0">
       <Container>
-        <div className="grid gap-9 sm:grid-cols-3">
-          {/* Domicilio */}
-          <div id="domicilio" className="flex items-start gap-4">
-            <span className="icon-chip shrink-0">
-              <ScooterIcon className="h-6 w-6" />
+        <div className="glass-card grid gap-6 px-[30px] pt-[18px] pb-[19px] sm:h-[141px] sm:grid-cols-3 sm:gap-0">
+          <div id="domicilio" className="flex items-start gap-[23px]">
+            <span className="mt-[1px] inline-flex shrink-0">
+              <ScooterIcon className="h-[41px] w-auto" />
             </span>
             <div className="flex flex-col">
               <h3 className="font-display text-[18px] font-semibold text-white">
                 ¡Pide ya tu domicilio!
               </h3>
-              <p className="mt-1 max-w-[240px] text-[14px] leading-relaxed text-polar-muted">
+              <p className="mt-[7px] max-w-[200px] text-[13px] leading-[1.38] text-[#B9B2C6]">
                 Llevamos la frescura hasta la puerta de tu casa.
               </p>
               <a
@@ -44,16 +43,18 @@ export function InfoRow() {
             </div>
           </div>
 
-          {/* Ubicación */}
-          <div id="ubicacion" className="flex items-start gap-4">
-            <span className="icon-chip shrink-0">
-              <MapPinIcon className="h-6 w-6" />
+          <div
+            id="ubicacion"
+            className="flex items-start gap-[23px] border-y border-[rgba(255,255,255,0.22)] py-6 sm:border-x sm:border-y-0 sm:px-[30px] sm:py-0"
+          >
+            <span className="mt-[1px] inline-flex shrink-0">
+              <MapPinIcon className="h-[43px] w-auto" />
             </span>
             <div className="flex flex-col">
               <h3 className="font-display text-[18px] font-semibold text-white">
                 Visítanos
               </h3>
-              <p className="mt-1 max-w-[240px] text-[14px] leading-relaxed text-polar-muted">
+              <p className="mt-[7px] max-w-[210px] text-[13px] leading-[1.38] text-[#B9B2C6]">
                 {ADDRESS_LINES.map((line) => (
                   <span key={line} className="block">
                     {line}
@@ -72,16 +73,15 @@ export function InfoRow() {
             </div>
           </div>
 
-          {/* Contacto */}
-          <div id="contacto" className="flex items-start gap-4">
-            <span className="icon-chip shrink-0">
-              <PhoneIcon className="h-6 w-6" />
+          <div id="contacto" className="flex items-start gap-[27px] sm:pl-[30px]">
+            <span className="mt-[1px] inline-flex shrink-0">
+              <PhoneIcon className="h-[43px] w-auto" />
             </span>
             <div className="flex flex-col">
               <h3 className="font-display text-[18px] font-semibold text-white">
                 Contáctanos
               </h3>
-              <p className="mt-1 max-w-[240px] text-[14px] leading-relaxed text-polar-muted">
+              <p className="mt-[7px] max-w-[220px] text-[13px] leading-[1.38] text-[#B9B2C6]">
                 ¿Tienes dudas o quieres hacer un pedido especial?
               </p>
               <a

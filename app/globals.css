@@ -21,7 +21,7 @@
 
   /* Fonts */
   --font-display: var(--font-poppins);
-  --font-body: var(--font-inter);
+  --font-body: var(--font-poppins);
 }
 
 @layer base {
@@ -113,11 +113,20 @@
   }
 
   .glass-card {
-    background: rgba(15, 10, 34, 0.7);
-    border: 1px solid rgba(167, 73, 197, 0.15);
-    border-radius: 18px;
+    background: rgba(15, 18, 36, 0.76);
+    border: 1px solid rgba(167, 73, 197, 0.14);
+    border-radius: 10px;
     backdrop-filter: blur(8px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero-title {
+    font-family: var(--font-hero), Impact, Haettenschweiler, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.12),
+      0 12px 30px rgba(255, 255, 255, 0.1);
   }
 
   .pill-active {

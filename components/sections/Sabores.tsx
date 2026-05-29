@@ -22,16 +22,16 @@ export function Sabores({ products, categories }: SaboresProps) {
   }, [active, products]);
 
   return (
-    <section id="menu" className="pt-10 pb-2">
+    <section id="menu" className="pt-0 pb-0">
       <Container>
         <div className="flex flex-col items-center text-center">
-          <span className="eyebrow">NUESTROS GRANIZADOS</span>
-          <h2 className="mt-3 font-display text-[30px] font-bold leading-tight text-white">
+          <span className="eyebrow text-[12px] tracking-[0.18em]">NUESTROS GRANIZADOS</span>
+          <h2 className="mt-[8px] font-display text-[30px] font-bold leading-tight text-white">
             Sabores que te{" "}
             <span className="text-polar-magenta">encantarán</span>
           </h2>
 
-          <div className="mt-5 w-full">
+          <div className="mt-[18px] w-full">
             <CategoryTabs
               categories={categories}
               active={active}
@@ -40,12 +40,12 @@ export function Sabores({ products, categories }: SaboresProps) {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-[20px]">
           <ProductGrid products={filtered} />
         </div>
 
-        <div className="flex justify-center pt-7">
-          <Link href="/menu" className="btn-outline-rect">
+        <div className="flex justify-center pt-[17px]">
+          <Link href="/menu" className="btn-outline-rect h-[39px] rounded-[12px] px-[28px] text-[14px]">
             Ver todos los sabores
             <CupIcon className="h-[18px] w-[18px]" />
           </Link>

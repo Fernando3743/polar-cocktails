@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Anton, Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/layout/Navbar";
@@ -20,6 +20,13 @@ const inter = Inter({
   display: "swap",
 });
 
+const anton = Anton({
+  variable: "--font-hero",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Polar — Cócteles Granizados",
   description:
@@ -32,7 +39,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${poppins.variable} ${inter.variable}`}>
+    <html
+      lang="es"
+      className={`${poppins.variable} ${inter.variable} ${anton.variable}`}
+    >
       <body className="page-bg font-body text-polar-text antialiased min-h-screen">
         <Providers>
           <Navbar />

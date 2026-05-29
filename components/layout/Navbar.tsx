@@ -12,34 +12,31 @@ export function Navbar() {
   const showBadge = mounted && itemCount > 0;
 
   return (
-    <header className="sticky top-0 z-50 bg-polar-bg/70 backdrop-blur-md">
-      {/* Subtle right-side purple glow behind the bar */}
+    <header className="relative z-50 bg-transparent">
       <div
-        className="pointer-events-none absolute right-0 top-0 h-full w-[440px]"
+        className="pointer-events-none absolute right-0 top-0 h-full w-[520px]"
         style={{
           background:
-            "radial-gradient(120% 140% at 78% 30%,rgba(146,40,218,0.18) 0%,transparent 60%)",
+            "radial-gradient(120% 140% at 78% 30%,rgba(146,40,218,0.24) 0%,transparent 62%)",
         }}
         aria-hidden="true"
       />
-      <Container className="relative z-10">
-        <nav className="flex h-[84px] items-center justify-between">
-          {/* Left: brand badge */}
+      <Container className="relative z-10 px-9 sm:px-10">
+        <nav className="flex h-[132px] items-start justify-between pt-[17px]">
           <Link
             href="/"
             className="flex items-center"
             aria-label={`${SITE_NAME} - Inicio`}
           >
-            <PolarLogo className="h-[68px] w-[68px] text-polar-text" />
+            <PolarLogo className="h-[98px] w-[98px] text-polar-text" />
           </Link>
 
-          {/* Center: nav links */}
-          <ul className="hidden items-center gap-[38px] md:flex">
+          <ul className="mt-[36px] hidden items-center gap-[38px] md:flex">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-[15px] font-medium text-[#E6E3EE] transition-colors hover:text-polar-text"
+                  className="text-[14px] font-medium text-[#F0EDF7] transition-colors hover:text-polar-text"
                 >
                   {link.label}
                 </Link>
@@ -47,11 +44,13 @@ export function Navbar() {
             ))}
           </ul>
 
-          {/* Right: Pide ya pill (opens cart) */}
           <button
             type="button"
             onClick={openCart}
-            className={clsx("btn-brand relative", "text-[15px]")}
+            className={clsx(
+              "btn-brand relative mt-[20px] mr-[22px] h-[42px] px-[18px]",
+              "text-[15px]",
+            )}
             aria-label="Pide ya - abrir carrito"
           >
             <WhatsAppIcon className="h-[18px] w-[18px]" />
