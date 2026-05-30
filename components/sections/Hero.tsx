@@ -60,7 +60,7 @@ export function Hero() {
           </div>
 
           <div className="relative hidden h-[456px] lg:block">
-            <div className="absolute left-[-5px] top-[-26px] h-[500px] w-[610px] overflow-hidden">
+            <div className="absolute top-[-26px] right-[18px] h-[500px] w-[610px] overflow-hidden">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[120px] bg-gradient-to-r from-black to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[110px] bg-gradient-to-t from-black to-transparent" />
               <Image
