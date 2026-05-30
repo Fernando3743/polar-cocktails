@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Polar
+
+Spanish-language storefront, checkout flow, and admin backend for Polar, a
+granizado / frozen-cocktail shop.
+
+The app is built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS
+v4, and Supabase. It can run locally without Supabase in demo mode, using bundled
+seed data and a non-persisted checkout flow.
+
+## Features
+
+- Public storefront with hero, menu highlights, location/contact sections, and
+  responsive navigation.
+- Full menu page with category filtering and cart integration.
+- Checkout flow that validates orders and recomputes totals server-side.
+- Order confirmation page.
+- Admin area for products, categories, orders, and order status updates.
+- Optional Supabase-backed persistence and auth.
+
+## Requirements
+
+- Node.js compatible with Next.js 16
+- npm
+- Supabase project, only if you want database-backed orders and admin features
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and start the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+When Supabase environment variables are not configured, the app runs in demo
+mode:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Storefront data comes from `lib/seed-data.ts`.
+- Checkout returns a generated order id.
+- Orders are not persisted.
+- Admin auth is disabled.
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+Copy `.env.example` to `.env.local` and fill the values if you want Supabase
+mode:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+ADMIN_EMAIL=
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Supabase mode is enabled only when both public Supabase variables are present.
+See `SETUP.md` for the full Supabase setup and handoff notes.
 
-## Deploy on Vercel
+## Supabase Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run the migrations in order from the Supabase SQL editor:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+supabase/migrations/0001_init.sql
+supabase/migrations/0002_rls.sql
+```
+
+Then disable public sign-ups in Supabase Auth and create one admin user matching
+`ADMIN_EMAIL`. That user can sign in at `/admin`.
+
+## Useful Routes
+
+- `/` - storefront
+- `/menu` - full menu
+- `/checkout` - checkout
+- `/order/[id]` - order confirmation
+- `/admin` - admin dashboard
+- `/admin/products` - product management
+- `/admin/categories` - category management
+- `/admin/orders` - order management
+
+## Project Structure
+
+```text
+app/                         Next.js app routes
+app/(admin)/admin/           Admin pages and components
+components/cart/             Cart context, reducer, drawer, and button
+components/checkout/         Checkout UI
+components/layout/           Navbar, footer, mobile nav, shared layout pieces
+components/menu/             Product grid, cards, and category tabs
+components/sections/         Storefront sections
+lib/actions/                 Server actions for auth, catalog, and orders
+lib/queries/                 Server-side data reads
+lib/supabase/                Supabase clients, env detection, and auth helpers
+lib/validation/              Zod schemas
+supabase/migrations/         Database schema and RLS migrations
+design/PolarUIPrototype.png  Visual source of truth
+```
+
+## Scripts
+
+```bash
+npm run dev      # start local development server
+npm run build    # create production build
+npm run start    # serve production build
+npm run lint     # run ESLint
+npx tsc --noEmit # type-check only
+```
+
+## Design Notes
+
+The design reference is `design/PolarUIPrototype.png`. Customer-facing copy is in
+Spanish, and the UI uses Tailwind v4 tokens and component classes from
+`app/globals.css`.
+
+Product imagery prefers `imageUrl` / `image_url` when present and falls back to
+the local placeholder cup visuals.
