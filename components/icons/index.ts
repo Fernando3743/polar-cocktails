@@ -2,6 +2,7 @@ export { PolarLogo } from "./PolarLogo";
 export { WhatsAppIcon } from "./WhatsAppIcon";
 export { SnowflakeIcon } from "./SnowflakeIcon";
 export { CupIcon } from "./CupIcon";
+export { CartIcon } from "./CartIcon";
 export { PlusIcon } from "./PlusIcon";
 export { ArrowRightIcon } from "./ArrowRightIcon";
 export { ScooterIcon } from "./ScooterIcon";

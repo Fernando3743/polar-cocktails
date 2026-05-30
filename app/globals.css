@@ -168,6 +168,16 @@
     border-color: rgba(167, 73, 197, 0.45);
   }
 
+  @media (max-width: 640px) {
+    .pill-active,
+    .pill-inactive {
+      height: 28px;
+      min-width: 0;
+      padding: 0 8px;
+      font-size: 10px;
+    }
+  }
+
   .hero-glow {
     position: absolute;
     background: radial-gradient(
