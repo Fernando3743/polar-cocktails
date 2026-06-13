@@ -124,7 +124,7 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label="Carrito de compras"
-        aria-hidden={!isOpen}
+        inert={!isOpen}
         tabIndex={-1}
         className={clsx(
           "fixed right-0 top-0 z-[100] flex h-full w-full max-w-[420px] flex-col",

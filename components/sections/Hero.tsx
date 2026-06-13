@@ -88,9 +88,9 @@ export function Hero({
           <Image
             src={mobileSrc}
             alt=""
-            loading="eager"
+            priority
             fill
-            sizes="340px"
+            sizes="(max-width: 767px) 340px, 0px"
             className="object-cover object-[58%_45%] opacity-95"
           />
         </div>

@@ -105,7 +105,7 @@ export function MobileBottomNav() {
         type="button"
         onClick={openCart}
         className="mb-[15px] inline-flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full bg-gradient-to-br from-[#B84DFF] to-[#9128DA] text-white shadow-[0_0_28px_rgba(177,62,255,0.72)]"
-        aria-label="Abrir pedido"
+        aria-label="Pedir, abrir carrito"
       >
         <WhatsAppIcon className="h-[25px] w-[25px]" />
         <span className="mt-[1px] text-[10px] font-bold">Pedir</span>
