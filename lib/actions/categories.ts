@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { categorySchema, type CategorySchema } from "@/lib/validation/schemas";
@@ -41,6 +41,10 @@ function toRow(input: CategorySchema) {
 }
 
 function revalidateStorefrontAndAdmin() {
+  // Category edits also change the denormalized category fields embedded in the
+  // cached products read, so flush both catalog tags.
+  revalidateTag("categories", "max");
+  revalidateTag("products", "max");
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/admin/categories");

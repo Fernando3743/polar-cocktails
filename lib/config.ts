@@ -12,6 +12,40 @@ export const MAPS_URL =
 
 export const SITE_NAME = "Polar";
 
+// Social profile URLs. Hrefs are "#" placeholders until the shop's real
+// profiles land; once a real URL is set here it auto-populates the Footer
+// links and the Restaurant node's sameAs in components/seo/JsonLd.tsx.
+export interface SocialLink {
+  label: string;
+  href: string;
+}
+
+export const SOCIAL_LINKS: SocialLink[] = [
+  { label: "Instagram", href: "#" },
+  { label: "Facebook", href: "#" },
+  { label: "TikTok", href: "#" },
+];
+
+// Structured-data opening hours, e.g.
+//   [{ dayOfWeek: ["Friday", "Saturday"], opens: "16:00", closes: "23:00" }]
+// Pending real hours from the client; emit nothing while empty.
+export interface OpeningHours {
+  dayOfWeek: string[];
+  opens: string;
+  closes: string;
+}
+
+export const OPENING_HOURS: OpeningHours[] = [];
+
+// Structured-data geo coordinates. Pending real coordinates from the client;
+// stays null so no empty geo node is emitted.
+export interface Geo {
+  latitude: number;
+  longitude: number;
+}
+
+export const GEO: Geo | null = null;
+
 // The canonical production origin for metadata (metadataBase, Open Graph,
 // sitemap, robots) lives in lib/seo.ts siteUrl(), which reads NEXT_PUBLIC_SITE_URL.
 

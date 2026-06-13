@@ -71,7 +71,7 @@ export function Hero() {
           <Image
             src={heroMobileImage}
             alt=""
-            priority
+            loading="eager"
             fill
             sizes="340px"
             className="object-cover object-[58%_45%] opacity-95"
@@ -155,7 +155,7 @@ export function Hero() {
                 alt="Cuatro cócteles granizados Polar sobre pedestales morados"
                 priority
                 placeholder="blur"
-                sizes="620px"
+                sizes="(min-width: 1024px) 620px, 0px"
                 className="h-full w-full select-none object-cover object-[50%_45%]"
               />
             </div>

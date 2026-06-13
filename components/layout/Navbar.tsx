@@ -41,7 +41,10 @@ export function Navbar() {
         aria-hidden="true"
       />
       <Container className="relative z-10 px-5 md:px-9 lg:px-10">
-        <nav className="flex h-[58px] items-center justify-between md:h-[132px] md:items-start md:pt-[17px]">
+        <nav
+          aria-label="Navegación principal"
+          className="flex h-[58px] items-center justify-between md:h-[132px] md:items-start md:pt-[17px]"
+        >
           <button
             type="button"
             className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-full text-[#D8B6FF] md:hidden"

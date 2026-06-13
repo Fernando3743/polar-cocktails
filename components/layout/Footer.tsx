@@ -7,13 +7,19 @@ import {
   FacebookIcon,
   TikTokIcon,
 } from "@/components/icons";
-import { NAV_LINKS, SITE_NAME } from "@/lib/config";
+import { ADDRESS_LINES, NAV_LINKS, SITE_NAME, SOCIAL_LINKS } from "@/lib/config";
 
-const SOCIAL_LINKS = [
-  { label: "Instagram", href: "#", Icon: InstagramIcon },
-  { label: "Facebook", href: "#", Icon: FacebookIcon },
-  { label: "TikTok", href: "#", Icon: TikTokIcon },
-];
+// Map each configured social profile to its inline SVG icon. Hrefs come from
+// config (SOCIAL_LINKS); the icon mapping stays here so config holds no JSX.
+const SOCIAL_ICONS: Record<string, typeof InstagramIcon> = {
+  Instagram: InstagramIcon,
+  Facebook: FacebookIcon,
+  TikTok: TikTokIcon,
+};
+
+// Compact NAP line mirroring the JSON-LD PostalAddress. ADDRESS_LINES[0] is the
+// city ("Tuluá"); the remaining lines are the street address.
+const NAP_LINE = `${SITE_NAME} · ${ADDRESS_LINES.slice(1).join(", ")}, ${ADDRESS_LINES[0]}, Valle del Cauca`;
 
 const INSTAGRAM_TILES = [
   "/images/instagram-prototype-1.png",
@@ -44,17 +50,23 @@ export function Footer() {
                 </p>
               </div>
               <div className="flex items-center gap-[31px] pl-[16px]">
-                {SOCIAL_LINKS.map(({ label, href, Icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    aria-label={label}
-                    className="inline-flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[rgba(15,10,34,0.65)] text-polar-purple-light transition-colors hover:text-polar-text"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                ))}
+                {SOCIAL_LINKS.map(({ label, href }) => {
+                  const Icon = SOCIAL_ICONS[label];
+                  return (
+                    <a
+                      key={label}
+                      href={href}
+                      aria-label={label}
+                      className="inline-flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[rgba(15,10,34,0.65)] text-polar-purple-light transition-colors hover:text-polar-text"
+                    >
+                      {Icon ? <Icon className="h-4 w-4" /> : null}
+                    </a>
+                  );
+                })}
               </div>
+              <p className="pl-[16px] text-[12px] leading-[1.4] text-polar-dim">
+                {NAP_LINE}
+              </p>
             </div>
 
             <div className="flex flex-col gap-[12px]">

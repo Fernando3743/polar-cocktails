@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { productSchema, type ProductSchema } from "@/lib/validation/schemas";
@@ -62,6 +62,7 @@ function toRow(input: ProductSchema, categoryId: string) {
 }
 
 function revalidateStorefrontAndAdmin() {
+  revalidateTag("products", "max");
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/admin/products");
