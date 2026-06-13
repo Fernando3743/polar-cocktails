@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { SnowflakeIcon } from "@/components/icons";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { createClient } from "@/lib/supabase/server";
 import { getOrderById, getOrderByShortCode } from "@/lib/queries/orders";
-import { formatCop } from "@/lib/format";
 import { WhatsAppHandoff } from "@/components/order/WhatsAppHandoff";
 import type { WhatsAppOrderSummary } from "@/lib/whatsapp";
 
@@ -29,52 +29,61 @@ export default async function OrderConfirmationPage({
   let orderRef = id;
   let serverSummary: WhatsAppOrderSummary | null = null;
 
-  // Discount line (display-only): prefer the persisted DB order, fall back to
-  // the demo searchParams passed by the checkout redirect.
-  let promoCode: string | null = code?.trim().toUpperCase() || null;
-  let discountCop = 0;
-  {
-    const parsed = Number(discount);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      discountCop = Math.floor(parsed);
+  // Demo-mode-only discount banner fallback from the checkout redirect's query
+  // params. In DB mode these are never trusted — the customer banner is built
+  // client-side from the server-trusted summary in sessionStorage.
+  let demoPromoCode: string | null = null;
+  let demoDiscountCop = 0;
+  if (!hasSupabaseEnv()) {
+    demoPromoCode = code?.trim().toUpperCase() || null;
+    const parsedDiscount = Number(discount);
+    if (Number.isFinite(parsedDiscount) && parsedDiscount > 0) {
+      demoDiscountCop = Math.floor(parsedDiscount);
     }
   }
 
   if (hasSupabaseEnv()) {
-    // In DB mode the route param is the create_order short code (POL-...), not a
-    // uuid, so look it up by short_code. This stays null for anon customers (RLS
-    // has no public SELECT on orders); the reliable carrier is sessionStorage.
-    const order = id.startsWith("POL-")
-      ? await getOrderByShortCode(id)
-      : await getOrderById(id);
-    if (order) {
-      orderRef = order.shortCode ?? order.id;
-      if (order.discountCop > 0) {
-        promoCode = order.promoCode;
-        discountCop = order.discountCop;
-      }
-      if (order.items) {
-        serverSummary = {
-          orderRef,
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
-          deliveryType: order.deliveryType,
-          address: order.address,
-          notes: order.notes,
-          lines: order.items.map((it) => ({
-            name: it.productName,
-            qty: it.qty,
-            unitPriceCop: it.unitPriceCop,
-          })),
-          totalCop: order.totalCop,
-          promoCode: order.promoCode,
-          discountCop: order.discountCop,
-        };
+    // Optional authenticated read path (e.g. an admin opening the confirmation
+    // URL). The customer view does NOT depend on this: orders has no public
+    // SELECT under RLS, so anon reads return null and the customer summary
+    // comes from sessionStorage instead. Only spend the query when there is a
+    // validated user (getUser, not getSession).
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const order = id.startsWith("POL-")
+        ? await getOrderByShortCode(id)
+        : await getOrderById(id);
+      if (order) {
+        orderRef = order.shortCode ?? order.id;
+        if (order.items) {
+          serverSummary = {
+            orderRef,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            deliveryType: order.deliveryType,
+            address: order.address,
+            notes: order.notes,
+            lines: order.items.map((it) => ({
+              name: it.productName,
+              qty: it.qty,
+              unitPriceCop: it.unitPriceCop,
+              lineTotalCop: it.lineTotalCop,
+            })),
+            subtotalCop: order.items.reduce(
+              (sum, it) => sum + it.lineTotalCop,
+              0,
+            ),
+            totalCop: order.totalCop,
+            promoCode: order.promoCode,
+            discountCop: order.discountCop,
+          };
+        }
       }
     }
   }
-
-  const hasDiscount = discountCop > 0;
 
   return (
     <div className="py-16 sm:py-24">
@@ -105,14 +114,12 @@ export default async function OrderConfirmationPage({
             </p>
           </div>
 
-          {hasDiscount && (
-            <div className="w-full rounded-2xl border border-[rgba(146,40,218,0.3)] bg-[rgba(146,40,218,0.1)] px-5 py-3 text-sm text-polar-text">
-              Descuento aplicado
-              {promoCode ? `: ${promoCode}` : ""} (-{formatCop(discountCop)})
-            </div>
-          )}
-
-          <WhatsAppHandoff orderId={id} serverSummary={serverSummary} />
+          <WhatsAppHandoff
+            orderId={id}
+            serverSummary={serverSummary}
+            demoPromoCode={demoPromoCode}
+            demoDiscountCop={demoDiscountCop}
+          />
 
           <Link
             href="/"

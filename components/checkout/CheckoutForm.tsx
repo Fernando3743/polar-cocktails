@@ -8,6 +8,8 @@ import { useCart } from "@/components/cart/CartProvider";
 import { createOrder, validatePromo } from "@/lib/actions/orders";
 import { orderSchema } from "@/lib/validation/schemas";
 import { formatCop } from "@/lib/format";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { whatsappSummaryFromOrder } from "@/lib/whatsapp";
 import { PlaceholderCup, PlusIcon, TicketIcon } from "@/components/icons";
 import type { DeliveryType, OrderInput, PromoValidation } from "@/lib/types";
 
@@ -125,26 +127,24 @@ export function CheckoutForm() {
       if (result.ok) {
         // Carry the order to the confirmation page (the reliable path in both
         // modes: demo orders aren't persisted, and RLS blocks the customer from
-        // reading a DB order). The total here is display-only — the authoritative
-        // total was recomputed server-side in createOrder / the create_order RPC.
+        // reading a DB order). The summary is the SERVER-trusted one returned by
+        // createOrder / the create_order RPC — line items, subtotal, discount,
+        // and total are all server-computed here, never cart values. Contact /
+        // delivery fields come from the normalized parsed input so the displayed
+        // and WhatsApp phone match what is persisted.
         const payload = {
           orderId: result.orderId,
-          summary: {
-            orderRef: result.orderId,
-            customerName,
-            customerPhone,
-            deliveryType,
-            address: deliveryType === "delivery" ? address : null,
-            notes: notes.trim() ? notes : null,
-            lines: items.map((i) => ({
-              name: i.name,
-              qty: i.qty,
-              unitPriceCop: i.unitPriceCop,
-            })),
-            totalCop,
-            promoCode: appliedCode ?? null,
-            discountCop,
-          },
+          summary: whatsappSummaryFromOrder(result.summary, {
+            orderRef: result.summary.shortCode ?? result.orderId,
+            customerName: parsed.data.customerName,
+            customerPhone: parsed.data.customerPhone,
+            deliveryType: parsed.data.deliveryType,
+            address:
+              parsed.data.deliveryType === "delivery"
+                ? (parsed.data.address ?? null)
+                : null,
+            notes: parsed.data.notes ?? null,
+          }),
         };
         try {
           sessionStorage.setItem("polar_last_order", JSON.stringify(payload));
@@ -153,11 +153,14 @@ export function CheckoutForm() {
         }
         clear();
 
-        // Demo mode does not persist the order, so carry the applied
-        // code/discount to the confirmation page for display.
+        // Demo mode does not persist the order and has no server-side read path,
+        // so carry the server-computed code/discount to the confirmation page as
+        // a banner fallback. In DB mode these params are ignored (not trusted).
+        const summaryDiscount = result.summary.discountCop;
+        const summaryCode = result.summary.promoCode;
         const query =
-          appliedCode && discountCop > 0
-            ? `?code=${encodeURIComponent(appliedCode)}&discount=${discountCop}`
+          !hasSupabaseEnv() && summaryCode && summaryDiscount > 0
+            ? `?code=${encodeURIComponent(summaryCode)}&discount=${summaryDiscount}`
             : "";
         router.push(`/order/${result.orderId}${query}`);
       } else {

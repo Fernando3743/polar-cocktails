@@ -1,11 +1,13 @@
 import { formatCop } from "@/lib/format";
 import { whatsappUrl } from "@/lib/config";
 import type { DeliveryType } from "@/lib/types";
+import type { OrderSummary } from "@/lib/actions/orders";
 
 export interface WhatsAppOrderLine {
   name: string;
   qty: number;
   unitPriceCop: number; // integer COP, server-trusted in DB mode
+  lineTotalCop: number; // integer COP, server-trusted
 }
 
 export interface WhatsAppOrderSummary {
@@ -16,9 +18,52 @@ export interface WhatsAppOrderSummary {
   address?: string | null; // only meaningful for delivery
   notes?: string | null;
   lines: WhatsAppOrderLine[];
+  subtotalCop: number; // server-computed subtotal, before discount
   totalCop: number; // server-computed total (already discounted)
   promoCode?: string | null; // applied promo code, if any
   discountCop?: number | null; // discount applied to the total, if any
+}
+
+// Customer-entered contact / delivery fields. These are not part of the
+// server-trusted financial OrderSummary (which only carries items + amounts),
+// so they are supplied alongside it from the checkout form.
+export interface WhatsAppContact {
+  orderRef: string; // short code when present, else the route id
+  customerName: string;
+  customerPhone: string; // already normalized by the order schema
+  deliveryType: DeliveryType;
+  address?: string | null;
+  notes?: string | null;
+}
+
+/**
+ * Combines the server-trusted financial summary (items, unit prices, subtotal,
+ * discount, total, promo code) with the customer-entered contact/delivery
+ * details into the WhatsApp message payload. Line items and every amount come
+ * from `summary` — never from cart state.
+ */
+export function whatsappSummaryFromOrder(
+  summary: OrderSummary,
+  contact: WhatsAppContact,
+): WhatsAppOrderSummary {
+  return {
+    orderRef: contact.orderRef,
+    customerName: contact.customerName,
+    customerPhone: contact.customerPhone,
+    deliveryType: contact.deliveryType,
+    address: contact.address ?? null,
+    notes: contact.notes ?? null,
+    lines: summary.items.map((it) => ({
+      name: it.productName,
+      qty: it.qty,
+      unitPriceCop: it.unitPriceCop,
+      lineTotalCop: it.lineTotalCop,
+    })),
+    subtotalCop: summary.subtotalCop,
+    totalCop: summary.totalCop,
+    promoCode: summary.promoCode,
+    discountCop: summary.discountCop,
+  };
 }
 
 export const DELIVERY_LABEL: Record<DeliveryType, string> = {
@@ -41,10 +86,12 @@ export function buildWhatsAppMessage(o: WhatsAppOrderSummary): string {
   lines.push("");
   lines.push("Productos:");
   for (const l of o.lines) {
-    lines.push(`- ${l.name} x ${l.qty} = ${formatCop(l.unitPriceCop * l.qty)}`);
+    // Use the server-trusted per-line total, not unitPrice * qty from the client.
+    lines.push(`- ${l.name} x ${l.qty} = ${formatCop(l.lineTotalCop)}`);
   }
   lines.push("");
   if (o.promoCode && o.discountCop && o.discountCop > 0) {
+    lines.push(`Subtotal: ${formatCop(o.subtotalCop)}`);
     lines.push(`Codigo: ${o.promoCode}`);
     lines.push(`Descuento: -${formatCop(o.discountCop)}`);
   }

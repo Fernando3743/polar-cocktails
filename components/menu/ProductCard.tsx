@@ -14,7 +14,8 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem, openCart } = useCart();
   const isFeatured = product.sortOrder === 1;
-  const soldOut = product.soldOut;
+  // Tracked products at zero stock are sold out too; untracked stock is null/undefined.
+  const soldOut = product.soldOut || product.stockQty === 0;
 
   function handleAdd() {
     if (soldOut) return;

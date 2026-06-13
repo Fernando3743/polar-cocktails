@@ -13,9 +13,47 @@ import type {
   PromoValidation,
 } from "@/lib/types";
 
+/**
+ * Server-trusted order summary returned by createOrder. Every amount is
+ * recomputed server-side (DB `create_order` jsonb, or seed prices in demo
+ * mode) — client-sent unit prices are never reflected here. The confirmation
+ * page and the WhatsApp message are built from this, not from cart state.
+ */
+export type OrderSummary = {
+  shortCode: string | null;
+  items: {
+    productId: string;
+    productName: string;
+    qty: number;
+    unitPriceCop: number;
+    lineTotalCop: number;
+  }[];
+  subtotalCop: number;
+  discountCop: number;
+  totalCop: number;
+  promoCode: string | null;
+};
+
 export type CreateOrderResult =
-  | { ok: true; orderId: string }
+  | { ok: true; orderId: string; summary: OrderSummary }
   | { ok: false; error: string };
+
+// Shape of the jsonb returned by the `create_order` RPC (snake_case, all
+// fields server-computed and authoritative).
+type CreateOrderRpcResult = {
+  short_code: string;
+  items: {
+    product_id: string;
+    product_name: string;
+    qty: number;
+    unit_price_cop: number;
+    line_total_cop: number;
+  }[];
+  subtotal_cop: number;
+  discount_total: number;
+  promo_code: string | null;
+  total_cop: number;
+};
 
 /**
  * Validates a promo code against a subtotal (in COP). Used by the checkout
@@ -96,7 +134,8 @@ export async function createOrder(
 
   // --- Demo mode (no database): price against the seed catalog. -----------
   if (!hasSupabaseEnv()) {
-    let total = 0;
+    const summaryItems: OrderSummary["items"] = [];
+    let subtotal = 0;
     for (const item of data.items) {
       const product = SEED_PRODUCTS.find(
         (p) => p.id === item.productId && p.isActive,
@@ -113,26 +152,49 @@ export async function createOrder(
           error: `No hay suficiente stock de ${product.name}.`,
         };
       }
-      total += product.priceCop * item.qty;
+      const lineTotal = product.priceCop * item.qty;
+      summaryItems.push({
+        productId: product.id,
+        productName: product.name,
+        qty: item.qty,
+        unitPriceCop: product.priceCop, // seed price, never the client value
+        lineTotalCop: lineTotal,
+      });
+      subtotal += lineTotal;
     }
-    if (total <= 0) {
+    if (subtotal <= 0) {
       return { ok: false, error: "Tu carrito está vacío." };
     }
     // Re-validate the promo server-side; never trust a client-sent discount.
+    let discountCop = 0;
+    let promoCode: string | null = null;
     if (data.promoCode) {
-      const v = validateSeedPromo(data.promoCode, total);
+      const v = validateSeedPromo(data.promoCode, subtotal);
       if (!v.valid) {
         return { ok: false, error: v.reason ?? "Código no válido." };
       }
+      discountCop = v.discountCop;
+      promoCode = data.promoCode;
     }
-    // finalTotal = Math.max(0, total - discount) for parity, but nothing is
-    // persisted in demo mode; still return a generated id.
-    return { ok: true, orderId: randomUUID() };
+    // Nothing is persisted in demo mode; still return a generated id and the
+    // same server-trusted summary shape the DB branch produces.
+    return {
+      ok: true,
+      orderId: randomUUID(),
+      summary: {
+        shortCode: null, // demo has no short code
+        items: summaryItems,
+        subtotalCop: subtotal,
+        discountCop,
+        totalCop: Math.max(0, subtotal - discountCop),
+        promoCode,
+      },
+    };
   }
 
   // --- With a database: insert atomically via the create_order RPC. -------
   const supabase = await createClient();
-  const { data: orderId, error } = await supabase.rpc("create_order", {
+  const { data: rpcResult, error } = await supabase.rpc("create_order", {
     payload: {
       customerName: data.customerName,
       customerPhone: data.customerPhone,
@@ -147,8 +209,11 @@ export async function createOrder(
     },
   });
 
-  if (error || !orderId) {
+  if (error || !rpcResult) {
     // The RPC raises typed tokens; surface useful Spanish copy for each.
+    // Note (locked decision #4): create_order no longer raises for promo
+    // problems — a bad code is soft-dropped (no discount) and the order is
+    // still created — so `invalid_promo` no longer reaches this path.
     const code = error?.message ?? "";
     if (code.includes("product_sold_out")) {
       return {
@@ -163,13 +228,29 @@ export async function createOrder(
         error: "No hay suficiente stock de uno de los productos.",
       };
     }
-    if (code.includes("invalid_promo")) {
-      return { ok: false, error: "El código de descuento no es válido." };
-    }
     return { ok: false, error: "No pudimos crear tu pedido. Intenta de nuevo." };
   }
 
-  return { ok: true, orderId: orderId as string };
+  // The RPC returns an authoritative jsonb summary; map snake_case -> camelCase.
+  const r = rpcResult as CreateOrderRpcResult;
+  const summary: OrderSummary = {
+    shortCode: r.short_code,
+    items: (r.items ?? []).map((it) => ({
+      productId: it.product_id,
+      productName: it.product_name,
+      qty: it.qty,
+      unitPriceCop: it.unit_price_cop,
+      lineTotalCop: it.line_total_cop,
+    })),
+    subtotalCop: r.subtotal_cop,
+    discountCop: r.discount_total,
+    totalCop: r.total_cop,
+    promoCode: r.promo_code,
+  };
+
+  // The route param is the human-friendly short code (what the confirmation
+  // page looks up / displays).
+  return { ok: true, orderId: r.short_code, summary };
 }
 
 /**

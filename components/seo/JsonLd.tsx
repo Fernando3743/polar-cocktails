@@ -36,7 +36,10 @@ export async function JsonLd() {
     name: p.name,
     description: p.description,
     image: p.imageUrl
-      ? `${origin}${p.imageUrl}`
+      ? // DB-mode imageUrl is an absolute Supabase Storage URL; only prefix relative paths.
+        p.imageUrl.startsWith("http")
+        ? p.imageUrl
+        : `${origin}${p.imageUrl}`
       : `${origin}/opengraph-image.png`,
     category: p.categoryName,
     offers: {
@@ -44,9 +47,11 @@ export async function JsonLd() {
       // Raw integer COP as a plain string, e.g. "18000" — never formatCop().
       price: String(p.priceCop),
       priceCurrency: "COP",
-      availability: p.soldOut
-        ? "https://schema.org/OutOfStock"
-        : "https://schema.org/InStock",
+      // Tracked products at zero stock are sold out too; untracked stock is null/undefined.
+      availability:
+        p.soldOut || p.stockQty === 0
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
       seller: { "@id": `${origin}/#business` },
     },
   }));

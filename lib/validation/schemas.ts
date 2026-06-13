@@ -11,7 +11,12 @@ export const orderSchema = z
     customerPhone: z
       .string()
       .trim()
-      .transform((s) => s.replace(/[\s-]/g, ""))
+      // Normalize pasted formats like "(300) 123 4567" or "300.123.4567":
+      // keep only digits and a single leading '+', then validate.
+      .transform((s) => {
+        const plus = s.startsWith("+") ? "+" : "";
+        return plus + s.replace(/\D/g, "");
+      })
       .pipe(
         z
           .string()
