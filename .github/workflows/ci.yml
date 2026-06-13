@@ -8,14 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npx tsc --noEmit
-      - run: npm run lint
-      - run: npm run build
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm run lint
+      - run: pnpm run build
         env:
           # Build in demo mode so CI needs no secrets and exercises SSG of / and /menu.
           NEXT_PUBLIC_SUPABASE_URL: ""
