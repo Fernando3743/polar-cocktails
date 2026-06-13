@@ -47,7 +47,10 @@ yarn-error.log*
 Thumbs.db
 .idea/
 *.swp
+
+# local agent / harness artifacts (Claude Code session state + workflow scripts)
 .claude/scheduled_tasks.lock
+plans/.workflow-*.js
 
 # misc
 *.pem
