@@ -39,14 +39,20 @@ export async function updateSession(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin") && !isLoginRoute;
 
   // Mirror requireAdmin() (lib/auth.ts): a user is an admin when authenticated
-  // and either ADMIN_EMAIL is unset/empty or their email matches it. Gating both
-  // redirects on isAdmin (not mere authentication) keeps the edge consistent with
-  // the shell layout and avoids a login<->/admin redirect loop for a logged-in
-  // non-admin or a mismatched ADMIN_EMAIL.
-  const adminEmail = process.env.ADMIN_EMAIL;
+  // and either ADMIN_EMAIL is unset/empty or their email is in it (ADMIN_EMAIL
+  // may be a single email or a comma-separated allowlist). Gating both redirects
+  // on isAdmin (not mere authentication) keeps the edge consistent with the shell
+  // layout and avoids a login<->/admin redirect loop for a non-admin. Parsed
+  // inline (not imported from lib/auth) so this edge middleware stays free of
+  // server-only modules.
+  const adminAllowlist = (process.env.ADMIN_EMAIL ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter((email) => email.length > 0);
+  const userEmail = user?.email?.toLowerCase() ?? "";
   const isAdmin =
     !!user &&
-    (!adminEmail || user.email?.toLowerCase() === adminEmail.toLowerCase());
+    (adminAllowlist.length === 0 || adminAllowlist.includes(userEmail));
 
   if (isAdminRoute && !isAdmin) {
     const url = request.nextUrl.clone();
