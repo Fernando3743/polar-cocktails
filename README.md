@@ -20,7 +20,7 @@ seed data and a non-persisted checkout flow.
 ## Requirements
 
 - Node.js compatible with Next.js 16
-- npm
+- pnpm (bundled with Node via `corepack enable`)
 - Supabase project, only if you want database-backed orders and admin features
 
 ## Getting Started
@@ -28,8 +28,8 @@ seed data and a non-persisted checkout flow.
 Install dependencies and start the development server:
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open http://localhost:3000.
@@ -101,11 +101,11 @@ design/PolarUIPrototype.png  Visual source of truth
 ## Scripts
 
 ```bash
-npm run dev      # start local development server
-npm run build    # create production build
-npm run start    # serve production build
-npm run lint     # run ESLint
-npx tsc --noEmit # type-check only
+pnpm dev                # start local development server
+pnpm build              # create production build
+pnpm start              # serve production build
+pnpm lint               # run ESLint
+pnpm exec tsc --noEmit  # type-check only
 ```
 
 ## Design Notes

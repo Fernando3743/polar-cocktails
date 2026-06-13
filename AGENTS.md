@@ -52,20 +52,20 @@ Important examples:
 Use the scripts already defined in `package.json`:
 
 ```bash
-npm run dev          # local dev server at http://localhost:3000
-npm run build        # production build; main correctness gate
-npm run start        # serve the production build
-npm run lint         # ESLint flat config
-npx tsc --noEmit     # type-check only
+pnpm dev                # local dev server at http://localhost:3000
+pnpm build              # production build; main correctness gate
+pnpm start              # serve the production build
+pnpm lint               # ESLint flat config
+pnpm exec tsc --noEmit  # type-check only
 ```
 
 There is no test framework configured. For code changes, verify with the most
 relevant subset of:
 
 ```bash
-npx tsc --noEmit
-npm run lint
-npm run build
+pnpm exec tsc --noEmit
+pnpm lint
+pnpm build
 ```
 
 For UI changes, also run the app and inspect the affected route in a browser.
@@ -196,9 +196,9 @@ UI conventions:
 
 For non-trivial changes, report what was run and any failures:
 
-1. Type-check with `npx tsc --noEmit`.
-2. Lint with `npm run lint`.
-3. Build with `npm run build` when touching routing, server actions, data
+1. Type-check with `pnpm exec tsc --noEmit`.
+2. Lint with `pnpm lint`.
+3. Build with `pnpm build` when touching routing, server actions, data
    loading, Supabase, or framework behavior.
 4. Browser-check UI changes against `design/PolarUIPrototype.png`.
 5. Confirm demo mode still works without Supabase env vars when touching data

@@ -9,8 +9,8 @@ The original design lives in `design/PolarUIPrototype.png`.
 ## Run locally (no database needed)
 
 ```bash
-npm install
-npm run dev          # http://localhost:3000
+pnpm install
+pnpm dev      # http://localhost:3000
 ```
 
 Without Supabase env vars the storefront runs in **demo mode**: the menu comes from
@@ -39,7 +39,7 @@ to demo the whole site.
      real photos instead of the placeholder.
 3. In **Supabase → Authentication**: disable public sign-ups, then create one user with the
    `ADMIN_EMAIL` and a password. That user can log in at `/admin`.
-4. Restart `npm run dev`. The menu now loads from the database, orders persist, and `/admin`
+4. Restart `pnpm dev`. The menu now loads from the database, orders persist, and `/admin`
    lets you manage products/prices/categories and view + update order status.
 
 ## What still needs the client's input
@@ -63,7 +63,7 @@ to demo the whole site.
 ## Production build
 
 ```bash
-npm run build && npm run start
+pnpm build && pnpm start
 ```
 
 ## Deploy to Vercel

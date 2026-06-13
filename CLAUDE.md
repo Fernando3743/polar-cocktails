@@ -19,15 +19,15 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Supabase (Po
 ## Commands
 
 ```bash
-npm run dev          # dev server (Turbopack) at http://localhost:3000
-npm run build        # production build (also the canonical correctness gate — exercises RSC/SSG)
-npm run start        # serve the production build
-npm run lint         # eslint (flat config in eslint.config.mjs)
-npx tsc --noEmit     # type-check only
+pnpm dev                # dev server (Turbopack) at http://localhost:3000
+pnpm build              # production build (also the canonical correctness gate — exercises RSC/SSG)
+pnpm start              # serve the production build
+pnpm lint               # eslint (flat config in eslint.config.mjs)
+pnpm exec tsc --noEmit  # type-check only
 ```
 
-There is **no test framework** configured. Verify changes with `tsc --noEmit`, `npm run lint`,
-`npm run build`, and by driving the running app (the prototype is the visual oracle).
+There is **no test framework** configured. Verify changes with `tsc --noEmit`, `pnpm lint`,
+`pnpm build`, and by driving the running app (the prototype is the visual oracle).
 
 Supabase: there is no CLI wired up — apply `supabase/migrations/0001_init.sql` then
 `0002_rls.sql` by hand in the Supabase SQL editor. See `SETUP.md` for the full go-live steps.
@@ -44,7 +44,7 @@ Everything keys off **`hasSupabaseEnv()`** (`lib/supabase/env.ts`), which is tru
   `/admin/*`, and orders persist via the `create_order` RPC.
 
 When adding any data path, branch on `hasSupabaseEnv()` and keep the seed fallback working —
-`npm run build` statically generates `/` and `/menu` using seed data.
+`pnpm build` statically generates `/` and `/menu` using seed data.
 
 ## Server/client boundaries (how data flows)
 
