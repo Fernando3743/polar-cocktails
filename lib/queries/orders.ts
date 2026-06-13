@@ -10,7 +10,10 @@ interface OrderRow {
   delivery_type: Order["deliveryType"];
   notes: string | null;
   status: OrderStatus;
+  promo_code: string | null;
+  discount_total: number;
   total_cop: number;
+  short_code: string | null;
   created_at: string;
 }
 
@@ -32,7 +35,10 @@ function mapOrderRow(row: OrderRow): Order {
     deliveryType: row.delivery_type,
     notes: row.notes,
     status: row.status,
+    promoCode: row.promo_code,
+    discountCop: row.discount_total,
     totalCop: row.total_cop,
+    shortCode: row.short_code,
     createdAt: row.created_at,
   };
 }
@@ -62,7 +68,7 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
   let query = supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_phone, address, delivery_type, notes, status, total_cop, created_at",
+      "id, customer_name, customer_phone, address, delivery_type, notes, status, promo_code, discount_total, total_cop, short_code, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -80,9 +86,14 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
 }
 
 /**
- * Admin: a single order with its line items, or null when not found / no DB.
+ * A single order (with line items) looked up by a given column, or null when
+ * not found / no DB. Note: the order is still RLS-gated, so anon callers get
+ * null even with a valid key (orders has no public SELECT policy).
  */
-export async function getOrderById(id: string): Promise<Order | null> {
+async function getOrderBy(
+  column: "id" | "short_code",
+  value: string,
+): Promise<Order | null> {
   if (!hasSupabaseEnv()) {
     return null;
   }
@@ -92,26 +103,45 @@ export async function getOrderById(id: string): Promise<Order | null> {
   const { data: orderData, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_phone, address, delivery_type, notes, status, total_cop, created_at",
+      "id, customer_name, customer_phone, address, delivery_type, notes, status, promo_code, discount_total, total_cop, short_code, created_at",
     )
-    .eq("id", id)
+    .eq(column, value)
     .maybeSingle();
 
   if (orderError || !orderData) {
     return null;
   }
 
+  const order = mapOrderRow(orderData as OrderRow);
+
   const { data: itemsData } = await supabase
     .from("order_items")
     .select(
       "id, product_id, product_name, qty, unit_price_cop, line_total_cop",
     )
-    .eq("order_id", id);
+    .eq("order_id", order.id);
 
-  const order = mapOrderRow(orderData as OrderRow);
   order.items = ((itemsData as OrderItemRow[] | null) ?? []).map(
     mapOrderItemRow,
   );
 
   return order;
+}
+
+/**
+ * Admin: a single order with its line items by uuid, or null when not found.
+ * The admin order-detail route passes the uuid `orders.id`.
+ */
+export async function getOrderById(id: string): Promise<Order | null> {
+  return getOrderBy("id", id);
+}
+
+/**
+ * A single order by its human-friendly `POL-` short code (what create_order
+ * returns and the customer confirmation route uses as its param).
+ */
+export async function getOrderByShortCode(
+  shortCode: string,
+): Promise<Order | null> {
+  return getOrderBy("short_code", shortCode);
 }

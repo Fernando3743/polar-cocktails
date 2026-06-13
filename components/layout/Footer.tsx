@@ -102,7 +102,7 @@ export function Footer() {
 
           <div className="border-t border-[rgba(255,255,255,0.08)] py-[10px]">
             <p className="text-center text-[12px] text-polar-dim">
-              © 2024 Polar Cocktails. Todos los derechos reservados.
+              © 2026 Polar Cocktails. Todos los derechos reservados.
             </p>
           </div>
         </div>

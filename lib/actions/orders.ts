@@ -4,13 +4,75 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { SEED_PRODUCTS } from "@/lib/seed-data";
+import { SEED_PRODUCTS, validateSeedPromo } from "@/lib/seed-data";
 import { orderSchema } from "@/lib/validation/schemas";
-import type { OrderInput, OrderStatus } from "@/lib/types";
+import type {
+  OrderInput,
+  OrderStatus,
+  PromoType,
+  PromoValidation,
+} from "@/lib/types";
 
 export type CreateOrderResult =
   | { ok: true; orderId: string }
   | { ok: false; error: string };
+
+/**
+ * Validates a promo code against a subtotal (in COP). Used by the checkout
+ * "Aplicar" button. In demo mode this checks SEED_PROMOS; with a database it
+ * calls the anon-safe `validate_promo` RPC (no direct table read needed).
+ * Never trusts a client-sent discount — only the code is provided.
+ */
+export async function validatePromo(
+  code: string,
+  subtotalCop: number,
+): Promise<PromoValidation> {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) {
+    return {
+      valid: false,
+      type: null,
+      value: null,
+      discountCop: 0,
+      reason: "Ingresa un código.",
+    };
+  }
+
+  // Demo mode: validate against the seed list.
+  if (!hasSupabaseEnv()) {
+    return validateSeedPromo(normalized, subtotalCop);
+  }
+
+  // DB mode: anon-safe RPC (no table read access needed).
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("validate_promo", {
+    p_code: normalized,
+    p_subtotal: subtotalCop,
+  });
+  if (error || !data) {
+    return {
+      valid: false,
+      type: null,
+      value: null,
+      discountCop: 0,
+      reason: "Código no válido.",
+    };
+  }
+  const row = data as {
+    valid: boolean;
+    type: PromoType | null;
+    value: number | null;
+    discount: number;
+    reason: string | null;
+  };
+  return {
+    valid: row.valid,
+    type: row.type,
+    value: row.value,
+    discountCop: row.discount ?? 0,
+    reason: row.reason, // RPC returns Spanish reasons
+  };
+}
 
 /**
  * Creates an order. The price of every line is re-fetched server-side
@@ -39,14 +101,32 @@ export async function createOrder(
       const product = SEED_PRODUCTS.find(
         (p) => p.id === item.productId && p.isActive,
       );
-      if (!product) {
-        return { ok: false, error: "Uno de los productos no está disponible." };
+      if (!product || product.soldOut) {
+        return {
+          ok: false,
+          error: `${product?.name ?? "Un producto"} no está disponible por ahora.`,
+        };
+      }
+      if (product.stockQty != null && product.stockQty < item.qty) {
+        return {
+          ok: false,
+          error: `No hay suficiente stock de ${product.name}.`,
+        };
       }
       total += product.priceCop * item.qty;
     }
     if (total <= 0) {
       return { ok: false, error: "Tu carrito está vacío." };
     }
+    // Re-validate the promo server-side; never trust a client-sent discount.
+    if (data.promoCode) {
+      const v = validateSeedPromo(data.promoCode, total);
+      if (!v.valid) {
+        return { ok: false, error: v.reason ?? "Código no válido." };
+      }
+    }
+    // finalTotal = Math.max(0, total - discount) for parity, but nothing is
+    // persisted in demo mode; still return a generated id.
     return { ok: true, orderId: randomUUID() };
   }
 
@@ -59,6 +139,7 @@ export async function createOrder(
       address: data.address ?? null,
       deliveryType: data.deliveryType,
       notes: data.notes ?? null,
+      promoCode: data.promoCode ?? null,
       items: data.items.map((item) => ({
         productId: item.productId,
         qty: item.qty,
@@ -67,10 +148,25 @@ export async function createOrder(
   });
 
   if (error || !orderId) {
-    return {
-      ok: false,
-      error: "No pudimos crear tu pedido. Intenta de nuevo.",
-    };
+    // The RPC raises typed tokens; surface useful Spanish copy for each.
+    const code = error?.message ?? "";
+    if (code.includes("product_sold_out")) {
+      return {
+        ok: false,
+        error:
+          "Uno de los productos ya no está disponible. Actualiza tu carrito.",
+      };
+    }
+    if (code.includes("insufficient_stock")) {
+      return {
+        ok: false,
+        error: "No hay suficiente stock de uno de los productos.",
+      };
+    }
+    if (code.includes("invalid_promo")) {
+      return { ok: false, error: "El código de descuento no es válido." };
+    }
+    return { ok: false, error: "No pudimos crear tu pedido. Intenta de nuevo." };
   }
 
   return { ok: true, orderId: orderId as string };

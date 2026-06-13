@@ -1,4 +1,10 @@
-import type { Category, Product } from "@/lib/types";
+import { formatCop } from "@/lib/format";
+import type {
+  Category,
+  Product,
+  PromoType,
+  PromoValidation,
+} from "@/lib/types";
 
 export const SEED_CATEGORIES: Category[] = [
   { id: "seed-cat-frutales", name: "Frutales", slug: "frutales", sortOrder: 1 },
@@ -30,6 +36,7 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Clásicos",
     sortOrder: 1,
     isActive: true,
+    soldOut: false,
   },
   {
     id: "seed-mora-polar",
@@ -43,6 +50,7 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Frutales",
     sortOrder: 2,
     isActive: true,
+    soldOut: false,
   },
   {
     id: "seed-tropical-mix",
@@ -56,6 +64,7 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Tropicales",
     sortOrder: 3,
     isActive: true,
+    soldOut: false,
   },
   {
     id: "seed-fresa-colada",
@@ -69,6 +78,7 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Tropicales",
     sortOrder: 4,
     isActive: true,
+    soldOut: false,
   },
   {
     id: "seed-mango-loco",
@@ -82,6 +92,7 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Frutales",
     sortOrder: 5,
     isActive: true,
+    soldOut: false,
   },
   {
     id: "seed-polar-oreo",
@@ -95,5 +106,57 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Especiales",
     sortOrder: 6,
     isActive: true,
+    soldOut: false,
   },
 ];
+
+interface SeedPromo {
+  code: string;
+  type: PromoType;
+  value: number;
+  minSubtotalCop: number | null;
+  active: boolean;
+}
+
+export const SEED_PROMOS: SeedPromo[] = [
+  { code: "POLAR10", type: "percent", value: 10, minSubtotalCop: null, active: true },
+  { code: "FRIO5000", type: "fixed", value: 5000, minSubtotalCop: 30000, active: true },
+];
+
+export function validateSeedPromo(
+  code: string,
+  subtotalCop: number,
+): PromoValidation {
+  const normalized = code.trim().toUpperCase();
+  const promo = SEED_PROMOS.find((p) => p.code === normalized);
+  if (!promo || !promo.active) {
+    return {
+      valid: false,
+      type: null,
+      value: null,
+      discountCop: 0,
+      reason: "Código no válido.",
+    };
+  }
+  if (promo.minSubtotalCop !== null && subtotalCop < promo.minSubtotalCop) {
+    return {
+      valid: false,
+      type: null,
+      value: null,
+      discountCop: 0,
+      reason: `Aplica desde ${formatCop(promo.minSubtotalCop)}.`,
+    };
+  }
+  const raw =
+    promo.type === "percent"
+      ? Math.floor((subtotalCop * promo.value) / 100)
+      : promo.value;
+  const discountCop = Math.min(Math.max(raw, 0), subtotalCop); // clamp 0..subtotal
+  return {
+    valid: true,
+    type: promo.type,
+    value: promo.value,
+    discountCop,
+    reason: null,
+  };
+}

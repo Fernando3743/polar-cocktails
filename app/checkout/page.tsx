@@ -4,7 +4,8 @@ import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Pagar — Polar Cócteles Granizados",
+  title: "Pagar",
+  robots: { index: false, follow: false },
 };
 
 export default function CheckoutPage() {

@@ -55,3 +55,6 @@ Thumbs.db
 
 # scratch / image-gen intermediates (final assets live in public/images)
 /tmp/
+
+# reference-only static port of the storefront — never ship
+/template/

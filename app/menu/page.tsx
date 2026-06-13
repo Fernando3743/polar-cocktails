@@ -4,9 +4,10 @@ import { Container } from "@/components/ui/Container";
 import { getProducts, getCategories } from "@/lib/queries/menu";
 
 export const metadata = {
-  title: "Menú — Polar Cócteles Granizados",
+  title: "Menú",
   description:
     "Explora todos los sabores de cócteles granizados Polar. Frutales, tropicales, clásicos y especiales.",
+  alternates: { canonical: "/menu" },
 };
 
 export default async function MenuPage() {

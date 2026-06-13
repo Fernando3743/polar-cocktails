@@ -73,12 +73,18 @@ export default async function AdminOrdersPage({
                       {order.customerName}
                     </p>
                     <p className="text-xs text-polar-dim">
+                      {order.shortCode ? `${order.shortCode} · ` : ""}
                       {order.customerPhone} · {deliveryLabel(order.deliveryType)}
                     </p>
                   </div>
                   <p className="hidden text-xs text-polar-dim sm:block">
                     {formatDate(order.createdAt)}
                   </p>
+                  {order.promoCode && (
+                    <span className="rounded-full border border-[rgba(146,40,218,0.35)] bg-[rgba(146,40,218,0.1)] px-2 py-0.5 text-[11px] font-600 text-polar-magenta">
+                      {order.promoCode}
+                    </span>
+                  )}
                   <span className="text-sm font-700 text-polar-text">
                     {formatCop(order.totalCop)}
                   </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { clsx } from "clsx";
 import { PlaceholderCup, PlusIcon } from "@/components/icons";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatCop } from "@/lib/format";
@@ -13,8 +14,10 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem, openCart } = useCart();
   const isFeatured = product.sortOrder === 1;
+  const soldOut = product.soldOut;
 
   function handleAdd() {
+    if (soldOut) return;
     addItem(product);
     openCart();
   }
@@ -24,8 +27,13 @@ export function ProductCard({ product }: ProductCardProps) {
       <button
         type="button"
         onClick={handleAdd}
+        disabled={soldOut}
+        aria-disabled={soldOut}
         aria-label={`Agregar ${product.name} al carrito`}
-        className="absolute right-[10px] top-[9px] z-20 inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.54)] transition-[filter] hover:brightness-110 md:hidden"
+        className={clsx(
+          "absolute right-[10px] top-[9px] z-20 inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.54)] transition-[filter] hover:brightness-110 md:hidden",
+          soldOut && "opacity-40 cursor-not-allowed pointer-events-none",
+        )}
       >
         <PlusIcon className="h-[15px] w-[15px]" />
       </button>
@@ -55,6 +63,12 @@ export function ProductCard({ product }: ProductCardProps) {
         </span>
       )}
 
+      {soldOut && (
+        <span className="absolute right-[10px] top-[10px] z-20 inline-flex h-[17px] items-center rounded-full border border-[rgba(126,119,144,0.5)] bg-[rgba(13,12,32,0.9)] px-[9px] text-[8px] font-bold uppercase tracking-wide text-polar-dim md:text-[9px]">
+          Agotado
+        </span>
+      )}
+
       <h3 className="font-body text-[13px] font-semibold leading-tight text-white md:text-[16px]">
         {product.name}
       </h3>
@@ -69,8 +83,13 @@ export function ProductCard({ product }: ProductCardProps) {
         <button
           type="button"
           onClick={handleAdd}
+          disabled={soldOut}
+          aria-disabled={soldOut}
           aria-label={`Agregar ${product.name} al carrito`}
-          className="hidden h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.40)] transition-[filter] hover:brightness-110 md:inline-flex"
+          className={clsx(
+            "hidden h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.40)] transition-[filter] hover:brightness-110 md:inline-flex",
+            soldOut && "opacity-40 cursor-not-allowed pointer-events-none",
+          )}
         >
           <PlusIcon className="h-[13px] w-[13px]" />
         </button>

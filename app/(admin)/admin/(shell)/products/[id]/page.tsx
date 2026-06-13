@@ -56,6 +56,8 @@ export default async function AdminProductEditPage({
                 categorySlug: product.categorySlug,
                 sortOrder: product.sortOrder,
                 isActive: product.isActive,
+                soldOut: product.soldOut,
+                stockQty: product.stockQty ?? null,
               }
             : undefined
         }

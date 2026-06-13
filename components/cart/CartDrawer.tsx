@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { useCart } from "@/components/cart/CartProvider";
@@ -18,6 +18,9 @@ export function CartDrawer() {
     closeCart,
     mounted,
   } = useCart();
+
+  const panelRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   // Close on Escape and lock body scroll while the drawer is open.
   useEffect(() => {
@@ -37,6 +40,65 @@ export function CartDrawer() {
     };
   }, [isOpen, closeCart]);
 
+  // Focus management: remember the trigger, move focus into the panel on open,
+  // trap Tab within the panel while open, and restore focus on close.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    triggerRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    const getFocusable = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter((el) => el.offsetParent !== null);
+
+    // Move initial focus into the panel.
+    const initial = getFocusable()[0] ?? panel;
+    initial.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        e.preventDefault();
+        panel.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey) {
+        if (active === first || !panel.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !panel.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    panel.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      panel.removeEventListener("keydown", onKeyDown);
+      // Restore focus to the element that opened the drawer.
+      triggerRef.current?.focus();
+    };
+  }, [isOpen]);
+
   // Avoid rendering interactive cart state until hydrated.
   if (!mounted) return null;
 
@@ -54,10 +116,12 @@ export function CartDrawer() {
 
       {/* Slide-over panel */}
       <aside
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Carrito de compras"
         aria-hidden={!isOpen}
+        tabIndex={-1}
         className={clsx(
           "fixed right-0 top-0 z-[100] flex h-full w-full max-w-[420px] flex-col",
           "border-l border-polar-purple-light/20 bg-polar-bg2 shadow-[0_0_60px_rgba(0,0,0,0.6)]",

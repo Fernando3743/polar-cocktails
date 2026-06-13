@@ -55,6 +55,8 @@ function toRow(input: ProductSchema, categoryId: string) {
     accent_color: input.accentColor,
     image_url: input.imageUrl === "" ? null : input.imageUrl,
     is_active: input.isActive,
+    sold_out: input.soldOut,
+    stock_qty: input.stockQty,
     sort_order: input.sortOrder,
   };
 }

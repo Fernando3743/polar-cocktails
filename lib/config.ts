@@ -12,6 +12,9 @@ export const MAPS_URL =
 
 export const SITE_NAME = "Polar";
 
+// The canonical production origin for metadata (metadataBase, Open Graph,
+// sitemap, robots) lives in lib/seo.ts siteUrl(), which reads NEXT_PUBLIC_SITE_URL.
+
 export interface NavLink {
   label: string;
   href: string;

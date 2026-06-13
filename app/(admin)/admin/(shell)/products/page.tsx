@@ -71,6 +71,11 @@ export default async function AdminProductsPage() {
                         Inactivo
                       </span>
                     )}
+                    {product.soldOut && (
+                      <span className="rounded-full border border-[rgba(126,119,144,0.4)] bg-[rgba(126,119,144,0.12)] px-2 py-0.5 text-[10px] font-600 uppercase tracking-wide text-polar-dim">
+                        Agotado
+                      </span>
+                    )}
                   </div>
                   <p className="truncate text-xs text-polar-dim">
                     {product.categoryName || "Sin categoría"} ·{" "}

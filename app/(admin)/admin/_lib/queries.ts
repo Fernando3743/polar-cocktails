@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { SEED_CATEGORIES, SEED_PRODUCTS } from "@/lib/seed-data";
-import type { Category, Product } from "@/lib/types";
+import { SEED_CATEGORIES, SEED_PRODUCTS, SEED_PROMOS } from "@/lib/seed-data";
+import type { AdminPromo, Category, Product } from "@/lib/types";
 
 /**
  * Admin product shape: the storefront Product plus the category id, which the
@@ -26,6 +26,8 @@ interface AdminProductRow {
   image_url: string | null;
   sort_order: number;
   is_active: boolean;
+  sold_out: boolean;
+  stock_qty: number | null;
   category_id: string;
   category:
     | { name: string; slug: string }
@@ -55,11 +57,13 @@ function mapProduct(row: AdminProductRow): AdminProduct {
     categoryId: row.category_id,
     sortOrder: row.sort_order,
     isActive: row.is_active,
+    soldOut: row.sold_out,
+    stockQty: row.stock_qty,
   };
 }
 
 const PRODUCT_SELECT =
-  "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, category_id, category:categories(name, slug)";
+  "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, sold_out, stock_qty, category_id, category:categories(name, slug)";
 
 /** All products (including inactive), ordered by sort_order. Seed fallback. */
 export async function getAdminProducts(): Promise<AdminProduct[]> {
@@ -133,5 +137,58 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
     slug: row.slug,
     sortOrder: row.sort_order,
     isActive: row.is_active,
+  }));
+}
+
+interface AdminPromoRow {
+  id: string;
+  code: string;
+  type: AdminPromo["type"];
+  value: number;
+  min_subtotal: number | null;
+  active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  max_redemptions: number | null;
+  times_redeemed: number;
+}
+
+/** All promo codes, ordered by code. Seed fallback in demo mode. */
+export async function getAdminPromos(): Promise<AdminPromo[]> {
+  if (!hasSupabaseEnv()) {
+    return SEED_PROMOS.map((p, index) => ({
+      id: `seed-promo-${index}`,
+      code: p.code,
+      type: p.type,
+      value: p.value,
+      minSubtotalCop: p.minSubtotalCop,
+      active: p.active,
+      startsAt: null,
+      endsAt: null,
+      maxRedemptions: null,
+      timesRedeemed: 0,
+    }));
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("promos")
+    .select(
+      "id, code, type, value, min_subtotal, active, starts_at, ends_at, max_redemptions, times_redeemed",
+    )
+    .order("code", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as AdminPromoRow[]).map((row) => ({
+    id: row.id,
+    code: row.code,
+    type: row.type,
+    value: row.value,
+    minSubtotalCop: row.min_subtotal,
+    active: row.active,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    maxRedemptions: row.max_redemptions,
+    timesRedeemed: row.times_redeemed,
   }));
 }

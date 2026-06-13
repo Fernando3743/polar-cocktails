@@ -30,6 +30,15 @@
     color: #eeedef;
     min-height: 100vh;
   }
+
+  /* Visible keyboard focus ring on interactive elements. Derived from the
+     polar-purple accent token so it reads clearly on the dark theme without
+     introducing a new color. */
+  :is(.btn-brand, .btn-ghost, .btn-outline-rect, a, button):focus-visible {
+    outline: 2px solid var(--color-polar-purple);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 @layer components {

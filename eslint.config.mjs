@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference-only static port of the storefront — never ship, never lint.
+    "template/**",
   ]),
 ]);
 

@@ -20,6 +20,8 @@ interface ProductRow {
   image_url: string | null;
   sort_order: number;
   is_active: boolean;
+  sold_out: boolean;
+  stock_qty: number | null;
   category: { name: string; slug: string } | { name: string; slug: string }[] | null;
 }
 
@@ -44,6 +46,8 @@ function mapProductRow(row: ProductRow): Product {
     categoryName: category?.name ?? "",
     sortOrder: row.sort_order,
     isActive: row.is_active,
+    soldOut: row.sold_out,
+    stockQty: row.stock_qty,
   };
 }
 
@@ -80,7 +84,7 @@ export async function getProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, category:categories(name, slug)",
+      "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, sold_out, stock_qty, category:categories(name, slug)",
     )
     .eq("is_active", true)
     .order("sort_order", { ascending: true });

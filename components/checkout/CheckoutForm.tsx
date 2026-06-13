@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { useCart } from "@/components/cart/CartProvider";
-import { createOrder } from "@/lib/actions/orders";
+import { createOrder, validatePromo } from "@/lib/actions/orders";
 import { orderSchema } from "@/lib/validation/schemas";
 import { formatCop } from "@/lib/format";
-import { PlaceholderCup, PlusIcon } from "@/components/icons";
-import type { DeliveryType, OrderInput } from "@/lib/types";
+import { PlaceholderCup, PlusIcon, TicketIcon } from "@/components/icons";
+import type { DeliveryType, OrderInput, PromoValidation } from "@/lib/types";
 
 type FieldErrors = Partial<
   Record<
@@ -32,17 +32,66 @@ export function CheckoutForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<PromoValidation | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [checkingPromo, setCheckingPromo] = useState(false);
+
+  // Clear any applied promo when the subtotal changes so the displayed
+  // discount never drifts from the current cart (percent / min-subtotal codes).
+  // Done by adjusting state during render — keyed on the previous subtotal —
+  // instead of a setState-in-effect, which avoids an extra render pass.
+  const [prevSubtotalCop, setPrevSubtotalCop] = useState(subtotalCop);
+  if (prevSubtotalCop !== subtotalCop) {
+    setPrevSubtotalCop(subtotalCop);
+    setAppliedPromo(null);
+    setPromoError(null);
+  }
+
   const isEmpty = mounted && items.length === 0;
+
+  const discountCop = appliedPromo?.valid ? appliedPromo.discountCop : 0;
+  const totalCop = Math.max(0, subtotalCop - discountCop);
 
   const orderItems = useMemo(
     () => items.map((i) => ({ productId: i.productId, qty: i.qty })),
     [items],
   );
 
+  async function applyPromo() {
+    setPromoError(null);
+    setCheckingPromo(true);
+    try {
+      const v = await validatePromo(promoCode, subtotalCop);
+      if (!v.valid) {
+        setAppliedPromo(null);
+        setPromoError(v.reason ?? "Código no válido.");
+        return;
+      }
+      setAppliedPromo(v);
+    } catch {
+      setAppliedPromo(null);
+      setPromoError("No pudimos validar el código. Inténtalo de nuevo.");
+    } finally {
+      setCheckingPromo(false);
+    }
+  }
+
+  function removePromo() {
+    setAppliedPromo(null);
+    setPromoError(null);
+    setPromoCode("");
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
     setErrors({});
+
+    const appliedCode =
+      appliedPromo?.valid && promoCode.trim()
+        ? promoCode.trim().toUpperCase()
+        : undefined;
 
     const input: OrderInput = {
       customerName,
@@ -50,6 +99,7 @@ export function CheckoutForm() {
       deliveryType,
       address: deliveryType === "delivery" ? address : undefined,
       notes: notes.trim() ? notes : undefined,
+      promoCode: appliedCode,
       items: orderItems,
     };
 
@@ -73,8 +123,43 @@ export function CheckoutForm() {
     try {
       const result = await createOrder(parsed.data);
       if (result.ok) {
+        // Carry the order to the confirmation page (the reliable path in both
+        // modes: demo orders aren't persisted, and RLS blocks the customer from
+        // reading a DB order). The total here is display-only — the authoritative
+        // total was recomputed server-side in createOrder / the create_order RPC.
+        const payload = {
+          orderId: result.orderId,
+          summary: {
+            orderRef: result.orderId,
+            customerName,
+            customerPhone,
+            deliveryType,
+            address: deliveryType === "delivery" ? address : null,
+            notes: notes.trim() ? notes : null,
+            lines: items.map((i) => ({
+              name: i.name,
+              qty: i.qty,
+              unitPriceCop: i.unitPriceCop,
+            })),
+            totalCop,
+            promoCode: appliedCode ?? null,
+            discountCop,
+          },
+        };
+        try {
+          sessionStorage.setItem("polar_last_order", JSON.stringify(payload));
+        } catch {
+          // private mode / quota: confirmation page falls back to the generic link
+        }
         clear();
-        router.push(`/order/${result.orderId}`);
+
+        // Demo mode does not persist the order, so carry the applied
+        // code/discount to the confirmation page for display.
+        const query =
+          appliedCode && discountCop > 0
+            ? `?code=${encodeURIComponent(appliedCode)}&discount=${discountCop}`
+            : "";
+        router.push(`/order/${result.orderId}${query}`);
       } else {
         setFormError(result.error);
         setSubmitting(false);
@@ -299,11 +384,76 @@ export function CheckoutForm() {
             </ul>
           )}
 
-          <div className="mt-2 flex items-center justify-between border-t border-[rgba(167,73,197,0.15)] pt-4">
-            <span className="text-sm text-polar-muted">Subtotal</span>
-            <span className="font-display text-xl font-700 text-polar-text">
-              {mounted ? formatCop(subtotalCop) : formatCop(0)}
-            </span>
+          {/* Promo code */}
+          <div className="mt-2 flex flex-col gap-2 border-t border-[rgba(167,73,197,0.15)] pt-4">
+            {appliedPromo?.valid ? (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-[rgba(146,40,218,0.35)] bg-[rgba(146,40,218,0.1)] px-3 py-2.5">
+                <span className="inline-flex items-center gap-2 text-sm font-600 text-polar-text">
+                  <TicketIcon className="h-4 w-4 text-polar-magenta" />
+                  {promoCode.trim().toUpperCase()}
+                </span>
+                <button
+                  type="button"
+                  onClick={removePromo}
+                  className="text-xs text-polar-dim transition-colors hover:text-[#f3a9c1]"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-stretch gap-2">
+                  <div className="relative flex-1">
+                    <TicketIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-polar-dim" />
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="Código de descuento"
+                      aria-label="Código de descuento"
+                      autoCapitalize="characters"
+                      className={clsx(inputClass(!!promoError), "pl-9")}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={applyPromo}
+                    disabled={checkingPromo || !promoCode.trim() || !mounted}
+                    className="btn-outline-rect h-11 shrink-0 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {checkingPromo ? "..." : "Aplicar"}
+                  </button>
+                </div>
+                {promoError && (
+                  <p className="text-xs text-[#f3a9c1]" role="alert">
+                    {promoError}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-[rgba(167,73,197,0.15)] pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-polar-muted">Subtotal</span>
+              <span className="text-sm font-600 text-polar-text">
+                {mounted ? formatCop(subtotalCop) : formatCop(0)}
+              </span>
+            </div>
+            {mounted && discountCop > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-polar-muted">Descuento</span>
+                <span className="text-sm font-600 text-polar-magenta">
+                  -{formatCop(discountCop)}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-sm text-polar-muted">Total</span>
+              <span className="font-display text-xl font-700 text-polar-text">
+                {mounted ? formatCop(totalCop) : formatCop(0)}
+              </span>
+            </div>
           </div>
 
           <Link

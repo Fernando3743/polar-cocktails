@@ -6,7 +6,8 @@ import { AdminNav } from "../_components/AdminNav";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Panel — Polar",
+  title: "Panel",
+  robots: { index: false, follow: false },
 };
 
 export default async function AdminShellLayout({

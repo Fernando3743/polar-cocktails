@@ -26,6 +26,8 @@ interface ProductFormProps {
     categorySlug: string;
     sortOrder: number;
     isActive: boolean;
+    soldOut: boolean;
+    stockQty: number | null;
   };
 }
 
@@ -39,6 +41,8 @@ const DEFAULTS = {
   categorySlug: "",
   sortOrder: 0,
   isActive: true,
+  soldOut: false,
+  stockQty: null as number | null,
 };
 
 export function ProductForm({
@@ -73,6 +77,10 @@ export function ProductForm({
     String(initial?.sortOrder ?? DEFAULTS.sortOrder),
   );
   const [isActive, setIsActive] = useState(initial?.isActive ?? DEFAULTS.isActive);
+  const [soldOut, setSoldOut] = useState(initial?.soldOut ?? DEFAULTS.soldOut);
+  const [stockQty, setStockQty] = useState(
+    initial?.stockQty != null ? String(initial.stockQty) : "",
+  );
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -100,6 +108,8 @@ export function ProductForm({
       categorySlug,
       sortOrder: Number.parseInt(sortOrder, 10) || 0,
       isActive,
+      soldOut,
+      stockQty: stockQty.trim() === "" ? null : Number.parseInt(stockQty, 10),
     };
 
     const parsed = productSchema.safeParse(payload);
@@ -241,6 +251,25 @@ export function ProductForm({
           />
         </Field>
 
+        <Field
+          label="Stock disponible (opcional, vacío = sin control)"
+          error={errors.stockQty}
+        >
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={stockQty}
+            onChange={(e) => setStockQty(e.target.value)}
+            className={inputClass(!!errors.stockQty)}
+            placeholder="Sin control"
+          />
+          <p className="text-xs text-polar-dim">
+            Déjalo vacío para no controlar inventario. Con un número, cada pedido
+            descuenta del stock.
+          </p>
+        </Field>
+
         <label className="flex cursor-pointer items-center gap-3">
           <input
             type="checkbox"
@@ -250,6 +279,18 @@ export function ProductForm({
           />
           <span className="text-sm font-600 text-polar-text">
             Activo (visible en la tienda)
+          </span>
+        </label>
+
+        <label className="flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            checked={soldOut}
+            onChange={(e) => setSoldOut(e.target.checked)}
+            className="h-4 w-4 accent-polar-purple"
+          />
+          <span className="text-sm font-600 text-polar-text">
+            Agotado (no se puede pedir)
           </span>
         </label>
 

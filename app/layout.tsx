@@ -6,6 +6,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { Analytics } from "@/components/seo/Analytics";
+import { siteUrl, SITE_DESCRIPTION, SITE_KEYWORDS } from "@/lib/seo";
+import { SITE_NAME } from "@/lib/config";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -29,9 +32,32 @@ const anton = Anton({
 });
 
 export const metadata: Metadata = {
-  title: "Polar — Cócteles Granizados",
-  description:
-    "Cócteles granizados con una explosión de frescura. 12 sabores diferentes y 8 combinaciones únicas para todos los gustos. Pide tu domicilio en Tuluá.",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "Polar — Cócteles Granizados en Tuluá",
+    template: "%s — Polar",
+  },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "es_CO",
+    siteName: SITE_NAME,
+    url: siteUrl(),
+    title: "Polar — Cócteles Granizados en Tuluá",
+    description: SITE_DESCRIPTION,
+    // app/opengraph-image.png auto-populates og:image — do not also
+    // hardcode openGraph.images here, to avoid duplicate tags.
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Polar — Cócteles Granizados en Tuluá",
+    description: SITE_DESCRIPTION,
+    // app/twitter-image.png auto-populates twitter:image.
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -51,6 +77,7 @@ export default function RootLayout({
           <Footer />
           <MobileBottomNav />
           <CartDrawer />
+          <Analytics />
         </Providers>
       </body>
     </html>
