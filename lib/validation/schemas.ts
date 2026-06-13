@@ -24,12 +24,12 @@ function isAllowedImageUrl(value: string): boolean {
   return host === "supabase.co" || host.endsWith(".supabase.co");
 }
 
-export const imageUrlSchema = z
+const imageUrlSchema = z
   .string()
   .trim()
   .refine(isAllowedImageUrl, "Usa una imagen subida (Supabase) o deja vacío.");
 
-export const orderItemSchema = z.object({
+const orderItemSchema = z.object({
   productId: z.string().min(1, "Producto inválido."),
   qty: z.number().int().positive("La cantidad debe ser mayor a cero."),
 });
@@ -127,7 +127,7 @@ export type PromoSchema = z.infer<typeof promoSchema>;
 
 // Editable image slots, validated for the site_assets table. The url reuses the
 // shared image guard (IMG-1/IMG-2); href is an optional outbound link.
-export const ASSET_SLOTS = [
+const ASSET_SLOTS = [
   "hero_desktop",
   "hero_mobile",
   "logo",
@@ -204,7 +204,7 @@ export type OrderStatusSchema = z.infer<typeof orderStatusSchema>;
 
 // Admin management (super-admin only). Used by lib/actions/admins.ts to create a
 // panel admin via the service-role API and to reset an admin's password.
-export const emailSchema = z
+const emailSchema = z
   .string()
   .trim()
   .toLowerCase()

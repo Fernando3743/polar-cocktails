@@ -162,7 +162,7 @@ export function CheckoutForm() {
           (!summaryCode || summaryDiscount <= 0);
 
         try {
-          sessionStorage.setItem("polar_last_order", JSON.stringify(payload));
+          sessionStorage.setItem("polar_last_order:v1", JSON.stringify(payload));
           if (promoDropped) {
             sessionStorage.setItem(
               "polar_promo_dropped",

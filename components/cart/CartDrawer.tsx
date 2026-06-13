@@ -105,9 +105,12 @@ export function CartDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        aria-hidden={!isOpen}
+      {/* Backdrop (decorative; click-to-close is a mouse convenience — keyboard
+          users close via Escape or the focus-trapped close button). */}
+      <button
+        type="button"
+        aria-hidden="true"
+        tabIndex={-1}
         onClick={closeCart}
         className={clsx(
           "fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm transition-opacity duration-300",

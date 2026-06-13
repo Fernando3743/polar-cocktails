@@ -8,7 +8,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { formatCop } from "@/lib/format";
 import type { WhatsAppOrderSummary } from "@/lib/whatsapp";
 
-const SS_KEY = "polar_last_order"; // sessionStorage key (matches CheckoutForm)
+const SS_KEY = "polar_last_order:v1"; // sessionStorage key (matches CheckoutForm)
 
 export function WhatsAppHandoff({
   orderId,

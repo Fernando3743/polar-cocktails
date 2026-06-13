@@ -9,7 +9,7 @@ export type AdminAuthResult =
  * The single super admin's email, from SUPER_ADMIN_EMAIL (server-only, never
  * NEXT_PUBLIC). Returns null when unset/empty so isSuperAdmin fails CLOSED.
  */
-export function superAdminEmail(): string | null {
+function superAdminEmail(): string | null {
   const value = (process.env.SUPER_ADMIN_EMAIL ?? "").trim().toLowerCase();
   return value.length > 0 ? value : null;
 }

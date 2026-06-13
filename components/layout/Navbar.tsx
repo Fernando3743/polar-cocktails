@@ -125,5 +125,3 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
     </header>
   );
 }
-
-export default Navbar;

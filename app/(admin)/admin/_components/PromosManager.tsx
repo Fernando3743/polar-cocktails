@@ -223,6 +223,7 @@ export function PromosManager({
               value={newCode}
               onChange={(e) => setNewCode(e.target.value.toUpperCase())}
               placeholder="Código"
+              aria-label="Código de la promo"
               className={clsx(inputClass, "uppercase")}
             />
             <select
@@ -239,6 +240,7 @@ export function PromosManager({
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               placeholder={newType === "percent" ? "%" : "COP"}
+              aria-label="Valor del descuento"
               className={inputClass}
             />
           </div>
@@ -358,6 +360,7 @@ function EditRow({
           type="text"
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
+          aria-label="Código de la promo"
           className={clsx(inputClass, "uppercase")}
           placeholder="Código"
         />
@@ -374,6 +377,7 @@ function EditRow({
           min={1}
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          aria-label="Valor del descuento"
           className={inputClass}
           placeholder={type === "percent" ? "%" : "COP"}
         />

@@ -27,16 +27,19 @@ function ordersHref(params: {
   return qs ? `/admin/orders?${qs}` : "/admin/orders";
 }
 
+// Build the formatter once at module scope; rebuilding it per call is costly.
+const DATE_FORMAT = new Intl.DateTimeFormat("es-CO", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 function formatDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat("es-CO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return DATE_FORMAT.format(date);
 }
 
 export default async function AdminOrdersPage({

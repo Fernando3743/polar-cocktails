@@ -21,8 +21,10 @@ export default async function OrderConfirmationPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ code?: string; discount?: string }>;
 }) {
-  const { id } = await params;
-  const { code, discount } = await searchParams;
+  const [{ id }, { code, discount }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   // Reference shown on the "Número de pedido" card: short code when available,
   // otherwise the id from the route.

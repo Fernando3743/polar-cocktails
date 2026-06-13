@@ -184,6 +184,7 @@ export function ProductForm({
             type="text"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
+            aria-label="Nombre"
             className={inputClass(!!errors.name)}
             placeholder="Polar Blue"
           />
@@ -197,6 +198,7 @@ export function ProductForm({
               setSlugTouched(true);
               setSlug(e.target.value);
             }}
+            aria-label="Slug"
             className={inputClass(!!errors.slug)}
             placeholder="polar-blue"
           />
@@ -207,6 +209,7 @@ export function ProductForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
+            aria-label="Descripción"
             className={clsx(inputClass(!!errors.description), "min-h-[88px] resize-y py-3")}
             placeholder="Vodka, curaçao blue, limón y azúcar."
           />
@@ -221,6 +224,7 @@ export function ProductForm({
               step={500}
               value={priceCop}
               onChange={(e) => setPriceCop(e.target.value)}
+              aria-label="Precio (COP)"
               className={inputClass(!!errors.priceCop)}
             />
           </Field>
@@ -257,6 +261,7 @@ export function ProductForm({
                 type="text"
                 value={accentColor}
                 onChange={(e) => setAccentColor(e.target.value)}
+                aria-label="Código de color de acento"
                 className={clsx(inputClass(!!errors.accentColor), "font-mono uppercase")}
                 placeholder="#2EA6E0"
               />
@@ -270,6 +275,7 @@ export function ProductForm({
               min={0}
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
+              aria-label="Orden"
               className={inputClass(!!errors.sortOrder)}
             />
           </Field>
@@ -282,6 +288,7 @@ export function ProductForm({
             accept="image/*"
             onChange={handleFileChange}
             disabled={!supabaseReady || uploading}
+            aria-label="Subir imagen"
             className="hidden"
           />
           <div className="flex flex-wrap items-center gap-3">
@@ -347,6 +354,7 @@ export function ProductForm({
             min={0}
             value={stockQty}
             onChange={(e) => setStockQty(e.target.value)}
+            aria-label="Stock disponible"
             className={inputClass(!!errors.stockQty)}
             placeholder="Sin control"
           />

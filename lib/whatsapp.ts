@@ -66,13 +66,13 @@ export function whatsappSummaryFromOrder(
   };
 }
 
-export const DELIVERY_LABEL: Record<DeliveryType, string> = {
+const DELIVERY_LABEL: Record<DeliveryType, string> = {
   delivery: "Domicilio",
   pickup: "Recoger en tienda",
 };
 
 // Builds the Spanish WhatsApp body. No emojis; ASCII identifiers only.
-export function buildWhatsAppMessage(o: WhatsAppOrderSummary): string {
+function buildWhatsAppMessage(o: WhatsAppOrderSummary): string {
   const lines: string[] = [];
   lines.push("Hola Polar, quiero confirmar mi pedido.");
   lines.push("");

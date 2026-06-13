@@ -33,13 +33,15 @@ export default async function SiteLayout({
   // Build the 5 footer gallery tiles from the instagram_* slots, in order. Each
   // tile's outbound href falls back to the shop's Instagram profile when the
   // slot has no explicit href.
-  const galleryTiles = INSTAGRAM_SLOTS.map((slot) => {
+  const galleryTiles: { url: string; href: string }[] = [];
+  for (const slot of INSTAGRAM_SLOTS) {
     const asset = bySlot.get(slot);
-    return {
-      url: asset?.url ?? "",
-      href: asset?.href || settings.socialLinks.instagram,
-    };
-  }).filter((tile) => tile.url !== "");
+    if (!asset?.url) continue;
+    galleryTiles.push({
+      url: asset.url,
+      href: asset.href || settings.socialLinks.instagram,
+    });
+  }
 
   return (
     <Providers>

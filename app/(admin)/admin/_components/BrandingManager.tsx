@@ -141,11 +141,15 @@ function AssetCard({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs text-polar-dim">Subir imagen</label>
+        <label htmlFor={`upload-${slot}`} className="text-xs text-polar-dim">
+          Subir imagen
+        </label>
         <input
+          id={`upload-${slot}`}
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          aria-label="Subir imagen"
           disabled={!hasEnv || pending}
           onChange={handleFile}
           className={clsx(
@@ -165,10 +169,14 @@ function AssetCard({
 
       {isInstagram && (
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs text-polar-dim">Enlace (opcional)</label>
+          <label htmlFor={`href-${slot}`} className="text-xs text-polar-dim">
+            Enlace (opcional)
+          </label>
           <div className="flex items-center gap-2">
             <input
+              id={`href-${slot}`}
               type="url"
+              aria-label="Enlace de la galería"
               value={hrefValue}
               onChange={(e) => setHrefValue(e.target.value)}
               placeholder="https://instagram.com/..."

@@ -1,0 +1,6 @@
+# minimumReleaseAge delays installs of newly published versions by 7 days (10080 minutes),
+# giving the ecosystem time to catch and unpublish malicious releases before they reach us.
+minimumReleaseAge: 10080
+# trustPolicy: no-downgrade makes pnpm reject packages whose trust signals
+# (provenance, signatures) weaken between updates.
+trustPolicy: no-downgrade

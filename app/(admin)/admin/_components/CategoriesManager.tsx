@@ -179,6 +179,7 @@ export function CategoriesManager({
                 if (!newSlugTouched) setNewSlug(slugify(e.target.value));
               }}
               placeholder="Nombre"
+              aria-label="Nombre de la categoría"
               className={inputClass}
             />
             <input
@@ -189,6 +190,7 @@ export function CategoriesManager({
                 setNewSlug(e.target.value);
               }}
               placeholder="slug"
+              aria-label="Slug de la categoría"
               className={inputClass}
             />
             <input
@@ -197,6 +199,7 @@ export function CategoriesManager({
               value={newSort}
               onChange={(e) => setNewSort(e.target.value)}
               placeholder="Orden"
+              aria-label="Orden de la categoría"
               className={inputClass}
             />
           </div>
@@ -249,6 +252,7 @@ function EditRow({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          aria-label="Nombre de la categoría"
           className={inputClass}
           placeholder="Nombre"
         />
@@ -256,6 +260,7 @@ function EditRow({
           type="text"
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
+          aria-label="Slug de la categoría"
           className={inputClass}
           placeholder="slug"
         />
@@ -264,6 +269,7 @@ function EditRow({
           min={0}
           value={sort}
           onChange={(e) => setSort(e.target.value)}
+          aria-label="Orden de la categoría"
           className={inputClass}
           placeholder="Orden"
         />

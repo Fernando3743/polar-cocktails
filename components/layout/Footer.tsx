@@ -127,7 +127,7 @@ export function Footer({
                   const tileHref = tile.href || "#";
                   return (
                     <a
-                      key={i}
+                      key={tile.url}
                       href={tileHref}
                       {...(tileHref !== "#"
                         ? { target: "_blank", rel: "noopener noreferrer" }
@@ -159,5 +159,3 @@ export function Footer({
     </footer>
   );
 }
-
-export default Footer;

@@ -2,7 +2,7 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useEffect,
   useMemo,
   useReducer,
@@ -179,7 +179,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useCart(): CartContextValue {
-  const ctx = useContext(CartContext);
+  const ctx = use(CartContext);
   if (!ctx) {
     throw new Error("useCart must be used within a CartProvider");
   }

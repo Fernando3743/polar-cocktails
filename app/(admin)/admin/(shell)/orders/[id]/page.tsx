@@ -11,13 +11,16 @@ import { OrderStatusControl } from "../../../_components/OrderStatusControl";
 
 export const dynamic = "force-dynamic";
 
+// Build the formatter once at module scope; rebuilding it per call is costly.
+const DATE_FORMAT = new Intl.DateTimeFormat("es-CO", {
+  dateStyle: "long",
+  timeStyle: "short",
+});
+
 function formatDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "long",
-    timeStyle: "short",
-  }).format(date);
+  return DATE_FORMAT.format(date);
 }
 
 export default async function AdminOrderDetailPage({

@@ -200,6 +200,7 @@ export function AdminsManager({
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="correo@ejemplo.com"
+              aria-label="Correo del administrador"
               className={inputClass}
             />
             <input
@@ -208,6 +209,7 @@ export function AdminsManager({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Contraseña (mín. 8)"
+              aria-label="Contraseña del administrador"
               className={inputClass}
             />
           </div>
@@ -261,6 +263,7 @@ function ResetPasswordRow({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Nueva contraseña (mín. 8)"
+          aria-label="Nueva contraseña"
           className={inputClass}
         />
         <input
@@ -269,6 +272,7 @@ function ResetPasswordRow({
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           placeholder="Confirmar contraseña"
+          aria-label="Confirmar contraseña"
           className={inputClass}
         />
       </div>

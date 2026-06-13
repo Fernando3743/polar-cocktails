@@ -89,7 +89,7 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
 }
 
 /** Default and only page size for the admin orders list. */
-export const ORDERS_PAGE_SIZE = 20;
+const ORDERS_PAGE_SIZE = 20;
 
 interface GetOrdersPageOptions {
   status?: OrderStatus;

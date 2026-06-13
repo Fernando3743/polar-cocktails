@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 import { updateShopSettings } from "@/lib/actions/site";
 import { changePassword } from "@/lib/actions/auth";
 import { shopSettingsSchema } from "@/lib/validation/schemas";
 import type { OpeningHour, ShopSettings } from "@/lib/types";
+
+// Local hour rows carry a stable client id so React keys survive add/remove
+// without falling back to the array index.
+type HourRow = OpeningHour & { id: number };
 
 export function SettingsManager({
   settings,
@@ -20,15 +24,19 @@ export function SettingsManager({
 
   // Contact / social / hours form state.
   const [whatsapp, setWhatsapp] = useState(settings.whatsappNumber);
-  const [address, setAddress] = useState(settings.addressLines.join("\n"));
+  const [address, setAddress] = useState(() => settings.addressLines.join("\n"));
   const [mapsUrl, setMapsUrl] = useState(settings.mapsUrl);
   const [instagram, setInstagram] = useState(settings.socialLinks.instagram);
   const [facebook, setFacebook] = useState(settings.socialLinks.facebook);
   const [tiktok, setTiktok] = useState(settings.socialLinks.tiktok);
-  const [hours, setHours] = useState<OpeningHour[]>(
-    settings.openingHours.length > 0
+  const hourIdRef = useRef(
+    settings.openingHours.length > 0 ? settings.openingHours.length : 1,
+  );
+  const [hours, setHours] = useState<HourRow[]>(() =>
+    (settings.openingHours.length > 0
       ? settings.openingHours
-      : [{ label: "", value: "" }],
+      : [{ label: "", value: "" }]
+    ).map((row, i) => ({ id: i, ...row })),
   );
 
   const [settingsError, setSettingsError] = useState<string | null>(null);
@@ -47,7 +55,8 @@ export function SettingsManager({
   }
 
   function addHour() {
-    setHours((prev) => [...prev, { label: "", value: "" }]);
+    const id = hourIdRef.current++;
+    setHours((prev) => [...prev, { id, label: "", value: "" }]);
   }
 
   function removeHour(index: number) {
@@ -74,9 +83,12 @@ export function SettingsManager({
         tiktok: tiktok.trim(),
       },
       // Keep only fully-filled hour rows; both fields are required per row.
-      openingHours: hours
-        .map((row) => ({ label: row.label.trim(), value: row.value.trim() }))
-        .filter((row) => row.label !== "" && row.value !== ""),
+      openingHours: hours.reduce<OpeningHour[]>((kept, row) => {
+        const label = row.label.trim();
+        const value = row.value.trim();
+        if (label !== "" && value !== "") kept.push({ label, value });
+        return kept;
+      }, []),
     };
 
     const parsed = shopSettingsSchema.safeParse(payload);
@@ -253,7 +265,7 @@ export function SettingsManager({
             <div className="flex flex-col gap-2">
               {hours.map((row, index) => (
                 <div
-                  key={index}
+                  key={row.id}
                   className="grid items-center gap-2 sm:grid-cols-[1fr_1fr_auto]"
                 >
                   <input
@@ -263,6 +275,7 @@ export function SettingsManager({
                       updateHour(index, { label: e.target.value })
                     }
                     placeholder="Lun a Jue"
+                    aria-label={`Etiqueta del horario ${index + 1}`}
                     className={inputClass}
                     disabled={!hasEnv}
                   />
@@ -273,6 +286,7 @@ export function SettingsManager({
                       updateHour(index, { value: e.target.value })
                     }
                     placeholder="2:00 pm - 10:00 pm"
+                    aria-label={`Horario ${index + 1}`}
                     className={inputClass}
                     disabled={!hasEnv}
                   />
