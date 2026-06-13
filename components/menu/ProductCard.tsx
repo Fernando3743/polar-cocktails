@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { clsx } from "clsx";
-import { PlaceholderCup, PlusIcon } from "@/components/icons";
+import { PlusIcon } from "@/components/icons";
+import { ProductThumb } from "@/components/menu/ProductThumb";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatCop } from "@/lib/format";
 import type { Product } from "@/lib/types";
@@ -39,23 +39,16 @@ export function ProductCard({ product }: ProductCardProps) {
         <PlusIcon className="h-[15px] w-[15px]" />
       </button>
 
-      <div className="relative mb-[3px] h-[122px] md:mb-[8px] md:h-[181px]">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            sizes="(min-width: 1024px) 180px, 40vw"
-            className="object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.5)]"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <PlaceholderCup
-              accentColor={product.accentColor}
-              className="h-full w-auto drop-shadow-[0_14px_28px_rgba(0,0,0,0.45)]"
-            />
-          </div>
-        )}
+      <div className="relative mb-[3px] flex h-[122px] items-center justify-center md:mb-[8px] md:h-[181px]">
+        <ProductThumb
+          src={product.imageUrl}
+          alt={product.name}
+          accentColor={product.accentColor}
+          fill
+          sizes="(min-width: 1024px) 180px, 40vw"
+          className="object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.5)]"
+          placeholderClassName="h-full w-auto drop-shadow-[0_14px_28px_rgba(0,0,0,0.45)]"
+        />
       </div>
 
       {isFeatured && (

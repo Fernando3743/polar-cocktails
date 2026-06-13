@@ -5,17 +5,32 @@ import { clsx } from "clsx";
 import type { OrderStatus } from "@/lib/types";
 import { ORDER_STATUSES, STATUS_LABELS } from "../_lib/status";
 
-export function OrderStatusFilter({ active }: { active?: OrderStatus }) {
+export function OrderStatusFilter({
+  active,
+  q,
+}: {
+  active?: OrderStatus;
+  q?: string;
+}) {
   const options: { value: OrderStatus | null; label: string }[] = [
     { value: null, label: "Todos" },
     ...ORDER_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
   ];
 
+  // Switching status resets to page 1 but preserves the active search term.
+  function buildHref(status: OrderStatus | null): string {
+    const search = new URLSearchParams();
+    if (status) search.set("status", status);
+    if (q) search.set("q", q);
+    const qs = search.toString();
+    return qs ? `/admin/orders?${qs}` : "/admin/orders";
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
       {options.map((opt) => {
         const isActive = active === opt.value || (!active && opt.value === null);
-        const href = opt.value ? `/admin/orders?status=${opt.value}` : "/admin/orders";
+        const href = buildHref(opt.value);
         return (
           <Link
             key={opt.label}

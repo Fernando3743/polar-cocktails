@@ -50,7 +50,24 @@ function SparklesMini() {
   );
 }
 
-export function Hero() {
+interface HeroProps {
+  heroDesktopUrl?: string;
+  heroMobileUrl?: string;
+  whatsappNumber?: string;
+}
+
+export function Hero({
+  heroDesktopUrl,
+  heroMobileUrl,
+  whatsappNumber,
+}: HeroProps) {
+  // Remote (Supabase) URLs cannot use placeholder="blur" — that only works with
+  // static imports that carry a blurDataURL. When a URL prop is provided we use
+  // it as a plain string src and drop the blur; otherwise we keep the bundled
+  // static import as the demo/pre-migration fallback.
+  const desktopSrc = heroDesktopUrl ?? heroImage;
+  const mobileSrc = heroMobileUrl ?? heroMobileImage;
+
   return (
     <section className="relative overflow-hidden pb-0 md:-mt-[132px] md:pt-[132px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -69,7 +86,7 @@ export function Hero() {
           aria-hidden="true"
         >
           <Image
-            src={heroMobileImage}
+            src={mobileSrc}
             alt=""
             loading="eager"
             fill
@@ -128,7 +145,7 @@ export function Hero() {
 
             <div className="mt-[16px] flex items-center gap-[12px] md:mt-[27px] md:flex-wrap">
               <a
-                href={whatsappUrl(ORDER_MESSAGE)}
+                href={whatsappUrl(ORDER_MESSAGE, whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-brand h-[38px] px-[14px] text-[11px] shadow-[0_0_22px_rgba(177,62,255,0.65)] md:h-[45px] md:px-[17px] md:text-[14px]"
@@ -151,10 +168,10 @@ export function Hero() {
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[120px] bg-gradient-to-r from-black to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[110px] bg-gradient-to-t from-black to-transparent" />
               <Image
-                src={heroImage}
+                src={desktopSrc}
                 alt="Cuatro cócteles granizados Polar sobre pedestales morados"
                 priority
-                placeholder="blur"
+                {...(heroDesktopUrl ? {} : { placeholder: "blur" as const })}
                 sizes="(min-width: 1024px) 620px, 0px"
                 className="h-full w-full select-none object-cover object-[50%_45%]"
               />

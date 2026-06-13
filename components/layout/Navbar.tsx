@@ -26,7 +26,7 @@ function MenuGlyph({ className }: { className?: string }) {
   );
 }
 
-export function Navbar() {
+export function Navbar({ logoUrl }: { logoUrl?: string }) {
   const { openCart, itemCount, mounted } = useCart();
   const showBadge = mounted && itemCount > 0;
 
@@ -58,7 +58,7 @@ export function Navbar() {
             className="hidden items-center md:flex"
             aria-label={`${SITE_NAME} - Inicio`}
           >
-            <PolarLogo className="h-[98px] w-[98px] text-polar-text" />
+            <PolarLogo src={logoUrl} className="h-[98px] w-[98px] text-polar-text" />
           </Link>
 
           <Link

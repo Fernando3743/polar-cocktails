@@ -2,12 +2,13 @@ import Image from "next/image";
 
 interface IconProps {
   className?: string;
+  src?: string;
 }
 
-export function PolarLogo({ className }: IconProps) {
+export function PolarLogo({ className, src = "/images/polar-logo.jpg" }: IconProps) {
   return (
     <Image
-      src="/images/polar logo.jpg"
+      src={src}
       alt="Polar Cocktails"
       width={150}
       height={150}

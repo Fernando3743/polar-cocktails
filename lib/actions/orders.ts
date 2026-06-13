@@ -4,8 +4,9 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { requireAdmin } from "@/lib/auth";
 import { SEED_PRODUCTS, validateSeedPromo } from "@/lib/seed-data";
-import { orderSchema } from "@/lib/validation/schemas";
+import { orderSchema, orderStatusSchema } from "@/lib/validation/schemas";
 import type {
   OrderInput,
   OrderStatus,
@@ -254,26 +255,35 @@ export async function createOrder(
 }
 
 /**
- * Admin: change an order's status. Guarded by getUser() (RLS also enforces
- * that only authenticated users can update orders).
+ * Admin: change an order's status. Gated by requireAdmin() (validates the JWT
+ * and, when ADMIN_EMAIL is set, the admin identity); RLS also enforces that
+ * only authenticated users can update orders. Inputs are validated server-side
+ * before touching Supabase: the id must be non-empty and the status must be a
+ * known order status.
  */
 export async function updateOrderStatus(
   id: string,
   status: OrderStatus,
 ): Promise<{ ok: boolean; error?: string }> {
+  // SEC-2: validate inputs before any Supabase access. Reject an empty/invalid
+  // id and an out-of-range status (the param is typed, but a Server Action is a
+  // network boundary, so the value cannot be trusted).
+  if (typeof id !== "string" || id.trim().length === 0) {
+    return { ok: false, error: "Pedido inválido." };
+  }
+  if (!orderStatusSchema.safeParse(status).success) {
+    return { ok: false, error: "Estado inválido." };
+  }
+
   if (!hasSupabaseEnv()) {
     return { ok: false, error: "Base de datos no configurada." };
   }
 
+  // SEC-1: gate the mutation through the shared admin guard.
+  const guard = await requireAdmin();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { ok: false, error: "No autorizado." };
-  }
-
   const { error } = await supabase
     .from("orders")
     .update({ status })

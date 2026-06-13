@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatCop } from "@/lib/format";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { PlaceholderCup } from "@/components/icons";
+import { ProductThumb } from "@/components/menu/ProductThumb";
 import { getAdminProducts } from "../../_lib/queries";
 import { ProductRowActions } from "../../_components/ProductRowActions";
 
@@ -46,19 +46,14 @@ export default async function AdminProductsPage() {
                 className="flex items-center gap-4 px-5 py-4"
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[rgba(25,3,75,0.4)]">
-                  {product.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <PlaceholderCup
-                      accentColor={product.accentColor}
-                      className="h-10 w-10"
-                    />
-                  )}
+                  <ProductThumb
+                    src={product.imageUrl}
+                    alt={product.name}
+                    accentColor={product.accentColor}
+                    width={48}
+                    height={48}
+                    placeholderClassName="h-10 w-10"
+                  />
                 </div>
 
                 <div className="min-w-0 flex-1">

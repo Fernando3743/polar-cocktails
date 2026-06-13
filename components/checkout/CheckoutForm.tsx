@@ -10,7 +10,8 @@ import { orderSchema } from "@/lib/validation/schemas";
 import { formatCop } from "@/lib/format";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { whatsappSummaryFromOrder } from "@/lib/whatsapp";
-import { PlaceholderCup, PlusIcon, TicketIcon } from "@/components/icons";
+import { PlusIcon, TicketIcon } from "@/components/icons";
+import { ProductThumb } from "@/components/menu/ProductThumb";
 import type { DeliveryType, OrderInput, PromoValidation } from "@/lib/types";
 
 type FieldErrors = Partial<
@@ -95,6 +96,10 @@ export function CheckoutForm() {
         ? promoCode.trim().toUpperCase()
         : undefined;
 
+    // What the customer believed they were getting, captured before the cart
+    // is cleared so we can compare it to the server-trusted summary (UX-6).
+    const expectedDiscountCop = discountCop;
+
     const input: OrderInput = {
       customerName,
       customerPhone,
@@ -146,8 +151,26 @@ export function CheckoutForm() {
             notes: parsed.data.notes ?? null,
           }),
         };
+        // UX-6: the customer applied a code that the server re-validated and
+        // dropped (expired, over its limit, subtotal no longer qualifies). The
+        // server summary is authoritative; the order still goes through, so we
+        // only flag a non-blocking heads-up rather than failing the checkout.
+        const summaryDiscount = result.summary.discountCop;
+        const summaryCode = result.summary.promoCode;
+        const promoDropped =
+          (appliedCode != null || expectedDiscountCop > 0) &&
+          (!summaryCode || summaryDiscount <= 0);
+
         try {
           sessionStorage.setItem("polar_last_order", JSON.stringify(payload));
+          if (promoDropped) {
+            sessionStorage.setItem(
+              "polar_promo_dropped",
+              "El código ya no estaba disponible y no se aplicó.",
+            );
+          } else {
+            sessionStorage.removeItem("polar_promo_dropped");
+          }
         } catch {
           // private mode / quota: confirmation page falls back to the generic link
         }
@@ -156,12 +179,17 @@ export function CheckoutForm() {
         // Demo mode does not persist the order and has no server-side read path,
         // so carry the server-computed code/discount to the confirmation page as
         // a banner fallback. In DB mode these params are ignored (not trusted).
-        const summaryDiscount = result.summary.discountCop;
-        const summaryCode = result.summary.promoCode;
-        const query =
-          !hasSupabaseEnv() && summaryCode && summaryDiscount > 0
-            ? `?code=${encodeURIComponent(summaryCode)}&discount=${summaryDiscount}`
-            : "";
+        // `promoDropped` rides along in both modes so the confirmation page can
+        // show the heads-up; it is harmless if the page ignores it.
+        const params = new URLSearchParams();
+        if (!hasSupabaseEnv() && summaryCode && summaryDiscount > 0) {
+          params.set("code", summaryCode);
+          params.set("discount", String(summaryDiscount));
+        }
+        if (promoDropped) {
+          params.set("promoDropped", "1");
+        }
+        const query = params.size > 0 ? `?${params.toString()}` : "";
         router.push(`/order/${result.orderId}${query}`);
       } else {
         setFormError(result.error);
@@ -318,19 +346,14 @@ export function CheckoutForm() {
               {items.map((item) => (
                 <li key={item.productId} className="flex items-center gap-3">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[rgba(25,3,75,0.4)]">
-                    {item.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <PlaceholderCup
-                        accentColor={item.accentColor}
-                        className="h-12 w-12"
-                      />
-                    )}
+                    <ProductThumb
+                      src={item.imageUrl}
+                      alt={item.name}
+                      accentColor={item.accentColor}
+                      width={56}
+                      height={56}
+                      placeholderClassName="h-12 w-12"
+                    />
                   </div>
 
                   <div className="min-w-0 flex-1">

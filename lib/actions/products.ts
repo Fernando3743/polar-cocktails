@@ -3,36 +3,18 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import {
+  requireAdmin,
+  isUniqueViolation,
+  isForeignKeyViolation,
+} from "@/lib/auth";
 import { productSchema, type ProductSchema } from "@/lib/validation/schemas";
 
 export type ProductActionResult =
   | { ok: true; productId: string }
   | { ok: false; error: string };
 
-interface SupabaseLike {
-  auth: { getUser: () => Promise<{ data: { user: unknown } }> };
-}
-
-type AdminGuard =
-  | { ok: false; error: string }
-  | { ok: true; supabase: Awaited<ReturnType<typeof createClient>> };
-
-/** Returns the authenticated client or an error; guards every admin mutation. */
-async function requireAdmin(): Promise<AdminGuard> {
-  if (!hasSupabaseEnv()) {
-    return { ok: false, error: "Base de datos no configurada." };
-  }
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await (supabase as unknown as SupabaseLike).auth.getUser();
-  if (!user) {
-    return { ok: false, error: "No autorizado." };
-  }
-  return { ok: true, supabase };
-}
-
-/** Resolves a category slug to its id (active categories only). */
+/** Resolves a category slug to its id (regardless of active state). */
 async function categoryIdForSlug(
   supabase: Awaited<ReturnType<typeof createClient>>,
   slug: string,
@@ -79,9 +61,13 @@ export async function createProduct(
     };
   }
 
+  if (!hasSupabaseEnv()) {
+    return { ok: false, error: "Base de datos no configurada." };
+  }
+
   const guard = await requireAdmin();
   if (!guard.ok) return { ok: false, error: guard.error };
-  const { supabase } = guard;
+  const supabase = await createClient();
 
   const categoryId = await categoryIdForSlug(supabase, parsed.data.categorySlug);
   if (!categoryId) {
@@ -95,6 +81,9 @@ export async function createProduct(
     .single();
 
   if (error || !data) {
+    if (isUniqueViolation(error)) {
+      return { ok: false, error: "Ya existe un producto con ese slug." };
+    }
     return { ok: false, error: "No pudimos crear el producto." };
   }
 
@@ -114,9 +103,13 @@ export async function updateProduct(
     };
   }
 
+  if (!hasSupabaseEnv()) {
+    return { ok: false, error: "Base de datos no configurada." };
+  }
+
   const guard = await requireAdmin();
   if (!guard.ok) return { ok: false, error: guard.error };
-  const { supabase } = guard;
+  const supabase = await createClient();
 
   const categoryId = await categoryIdForSlug(supabase, parsed.data.categorySlug);
   if (!categoryId) {
@@ -129,6 +122,9 @@ export async function updateProduct(
     .eq("id", id);
 
   if (error) {
+    if (isUniqueViolation(error)) {
+      return { ok: false, error: "Ya existe un producto con ese slug." };
+    }
     return { ok: false, error: "No pudimos actualizar el producto." };
   }
 
@@ -140,12 +136,23 @@ export async function updateProduct(
 export async function deleteProduct(
   id: string,
 ): Promise<{ ok: boolean; error?: string }> {
+  if (!hasSupabaseEnv()) {
+    return { ok: false, error: "Base de datos no configurada." };
+  }
+
   const guard = await requireAdmin();
   if (!guard.ok) return { ok: false, error: guard.error };
-  const { supabase } = guard;
+  const supabase = await createClient();
 
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) {
+    if (isForeignKeyViolation(error)) {
+      return {
+        ok: false,
+        error:
+          "No se puede eliminar: el producto tiene pedidos asociados. Desactívalo (Activo = off) en lugar de eliminarlo.",
+      };
+    }
     return { ok: false, error: "No pudimos eliminar el producto." };
   }
 

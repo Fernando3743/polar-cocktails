@@ -62,6 +62,9 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Contacto", href: "#contacto" },
 ];
 
-export function whatsappUrl(text: string): string {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+export function whatsappUrl(
+  text: string,
+  number: string = WHATSAPP_NUMBER,
+): string {
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 }

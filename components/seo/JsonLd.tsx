@@ -1,14 +1,7 @@
 import { getProducts } from "@/lib/queries/menu";
+import { getShopSettings } from "@/lib/queries/site";
 import { siteUrl, SITE_DESCRIPTION } from "@/lib/seo";
-import {
-  SITE_NAME,
-  ADDRESS_LINES,
-  MAPS_URL,
-  WHATSAPP_NUMBER,
-  SOCIAL_LINKS,
-  OPENING_HOURS,
-  GEO,
-} from "@/lib/config";
+import { SITE_NAME, OPENING_HOURS, GEO } from "@/lib/config";
 
 // Placeholder digits-only WhatsApp number; while this is set we must not emit a
 // fake telephone in structured data (SEO-005).
@@ -16,13 +9,20 @@ const PLACEHOLDER_WHATSAPP = "573000000000";
 
 export async function JsonLd() {
   const origin = siteUrl();
-  // Branches on hasSupabaseEnv() and falls back to seed data automatically.
-  const products = await getProducts();
+  // Both branch on hasSupabaseEnv() and fall back to seed/constants automatically.
+  const [products, settings] = await Promise.all([
+    getProducts(),
+    getShopSettings(),
+  ]);
 
-  // Only real (non-"#") social URLs belong in sameAs; omit the key when empty.
-  const sameAs = SOCIAL_LINKS.map((s) => s.href).filter(
-    (href) => href !== "#",
-  );
+  const { whatsappNumber, addressLines, mapsUrl, socialLinks } = settings;
+
+  // Only real (non-"#", non-empty) social URLs belong in sameAs; omit when none.
+  const sameAs = [
+    socialLinks.instagram,
+    socialLinks.facebook,
+    socialLinks.tiktok,
+  ].filter((href) => href && href !== "#");
 
   const business = {
     "@type": "Restaurant",
@@ -38,21 +38,24 @@ export async function JsonLd() {
     paymentAccepted: "Cash",
     currenciesAccepted: "COP",
     // Omit the telephone entirely while it is still the placeholder number.
-    ...(WHATSAPP_NUMBER !== PLACEHOLDER_WHATSAPP
-      ? { telephone: `+${WHATSAPP_NUMBER}` }
+    ...(whatsappNumber !== PLACEHOLDER_WHATSAPP
+      ? { telephone: `+${whatsappNumber}` }
       : {}),
-    hasMap: MAPS_URL,
+    hasMap: mapsUrl,
     address: {
       "@type": "PostalAddress",
-      streetAddress: ADDRESS_LINES.slice(1).join(", "),
-      addressLocality: "Tuluá",
+      streetAddress: addressLines.slice(1).join(", "),
+      addressLocality: addressLines[0] ?? "Tuluá",
       addressRegion: "Valle del Cauca",
       addressCountry: "CO",
     },
-    areaServed: { "@type": "City", name: "Tuluá" },
-    // Spread real social profiles only; nothing emitted while all are "#".
+    areaServed: { "@type": "City", name: addressLines[0] ?? "Tuluá" },
+    // Spread real social profiles only; nothing emitted while all are "#"/empty.
     ...(sameAs.length > 0 ? { sameAs } : {}),
-    // Wire-now-activate-later: emit hours only once real data lands in config.
+    // Wire-now-activate-later: emit hours only once structured data lands in
+    // config. Settings openingHours are free-form display strings (not the
+    // schema.org dayOfWeek/opens/closes shape), so they drive the storefront UI
+    // only; OPENING_HOURS remains the schema-valid source here.
     ...(OPENING_HOURS.length > 0
       ? {
           openingHoursSpecification: OPENING_HOURS.map((h) => ({

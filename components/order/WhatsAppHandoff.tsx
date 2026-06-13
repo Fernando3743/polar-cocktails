@@ -15,6 +15,7 @@ export function WhatsAppHandoff({
   serverSummary,
   demoPromoCode = null,
   demoDiscountCop = 0,
+  whatsappNumber,
 }: {
   orderId: string;
   // Server-trusted summary when available SSR-side (e.g. an authenticated
@@ -25,6 +26,9 @@ export function WhatsAppHandoff({
   // params. Never populated in DB mode (those params are not trusted there).
   demoPromoCode?: string | null;
   demoDiscountCop?: number;
+  // Shop WhatsApp number from settings, threaded down from the server page.
+  // Used for the generic fallback link; falls back to the config default.
+  whatsappNumber?: string;
 }) {
   // The authoritative summary, once known. Seeded from serverSummary (admin
   // SSR) and upgraded from sessionStorage on mount for the customer view.
@@ -55,7 +59,10 @@ export function WhatsAppHandoff({
   // Link: detailed message from the server summary, else a generic safe link.
   const href = summary
     ? buildWhatsAppLink(summary)
-    : whatsappUrl(`Hola Polar, quiero confirmar mi pedido. Pedido: ${orderId}.`);
+    : whatsappUrl(
+        `Hola Polar, quiero confirmar mi pedido. Pedido: ${orderId}.`,
+        whatsappNumber,
+      );
 
   // Discount banner, built from the server summary when present, otherwise the
   // demo-only query-param fallback. Never derived from cart state.

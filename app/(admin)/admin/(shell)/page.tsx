@@ -28,9 +28,16 @@ export default async function AdminDashboardPage() {
 
   const activeProducts = products.filter((p) => p.isActive).length;
   const pendingOrders = orders.filter((o) => o.status === "pending").length;
-  const revenue = orders
-    .filter((o) => o.status === "delivered")
-    .reduce((sum, o) => sum + o.totalCop, 0);
+  const delivered = orders.filter((o) => o.status === "delivered");
+  const revenue = delivered.reduce((sum, o) => sum + o.totalCop, 0);
+
+  // force-dynamic page: read request-time wall clock via `new Date()` (mirrors
+  // components/seo/JsonLd.tsx) so the rolling 30-day window is recomputed per request.
+  const since = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
+  const revenueLast30 = delivered.reduce((sum, o) => {
+    const created = new Date(o.createdAt).getTime();
+    return Number.isNaN(created) || created < since ? sum : sum + o.totalCop;
+  }, 0);
 
   const countsByStatus = ORDER_STATUSES.map((status) => ({
     status,
@@ -111,10 +118,19 @@ export default async function AdminDashboardPage() {
 
           <div className="mt-5 border-t border-[rgba(167,73,197,0.12)] pt-4">
             <p className="text-xs uppercase tracking-[0.14em] text-polar-dim">
-              Ingresos (entregados)
+              Ingresos totales (entregados)
             </p>
             <p className="mt-1 font-display text-xl font-700 text-polar-text">
               {formatCop(revenue)}
+            </p>
+          </div>
+
+          <div className="mt-4 border-t border-[rgba(167,73,197,0.12)] pt-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-polar-dim">
+              Ingresos últimos 30 días (entregados)
+            </p>
+            <p className="mt-1 font-display text-xl font-700 text-polar-text">
+              {formatCop(revenueLast30)}
             </p>
           </div>
         </div>

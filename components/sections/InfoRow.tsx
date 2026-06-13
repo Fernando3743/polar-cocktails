@@ -6,6 +6,7 @@ import {
   ScooterIcon,
 } from "@/components/icons";
 import { ADDRESS_LINES, MAPS_URL, whatsappUrl } from "@/lib/config";
+import type { OpeningHour } from "@/lib/types";
 
 const ctaClass =
   "mt-[9px] inline-flex items-center gap-1.5 text-[14px] font-semibold text-polar-magenta transition-colors hover:text-polar-purple-light";
@@ -15,11 +16,30 @@ const DELIVERY_MESSAGE =
 const CONTACT_MESSAGE =
   "¡Hola Polar! Tengo una duda / quiero hacer un pedido especial.";
 
-export function InfoRow() {
+interface InfoRowProps {
+  addressLines?: string[];
+  mapsUrl?: string;
+  openingHours?: OpeningHour[];
+  whatsappNumber?: string;
+}
+
+export function InfoRow({
+  addressLines,
+  mapsUrl,
+  openingHours,
+  whatsappNumber,
+}: InfoRowProps) {
+  // Fall back to the static config constants so demo mode and the
+  // pre-migration build keep rendering identically to the prototype.
+  const resolvedAddress =
+    addressLines && addressLines.length > 0 ? addressLines : ADDRESS_LINES;
+  const resolvedMapsUrl = mapsUrl || MAPS_URL;
+  const hours = openingHours ?? [];
+
   return (
     <section className="pt-[24px] pb-0">
       <Container>
-        <div className="glass-card grid gap-6 px-[30px] pt-[18px] pb-[19px] sm:h-[141px] sm:grid-cols-3 sm:gap-0">
+        <div className="glass-card grid gap-6 px-[30px] pt-[18px] pb-[19px] sm:min-h-[141px] sm:grid-cols-3 sm:gap-0">
           <div id="domicilio" className="flex items-start gap-[23px]">
             <span className="mt-[1px] inline-flex shrink-0">
               <ScooterIcon className="h-[41px] w-auto" />
@@ -32,7 +52,7 @@ export function InfoRow() {
                 Llevamos la frescura hasta la puerta de tu casa.
               </p>
               <a
-                href={whatsappUrl(DELIVERY_MESSAGE)}
+                href={whatsappUrl(DELIVERY_MESSAGE, whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={ctaClass}
@@ -55,14 +75,27 @@ export function InfoRow() {
                 Visítanos
               </h3>
               <p className="mt-[7px] max-w-[210px] text-[13px] leading-[1.38] text-[#B9B2C6]">
-                {ADDRESS_LINES.map((line) => (
+                {resolvedAddress.map((line) => (
                   <span key={line} className="block">
                     {line}
                   </span>
                 ))}
               </p>
+              {hours.length > 0 && (
+                <dl className="mt-[7px] max-w-[210px] text-[12px] leading-[1.4] text-polar-dim">
+                  {hours.map((h) => (
+                    <div
+                      key={`${h.label}-${h.value}`}
+                      className="flex justify-between gap-2"
+                    >
+                      <dt>{h.label}</dt>
+                      <dd className="text-right text-[#B9B2C6]">{h.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
               <a
-                href={MAPS_URL}
+                href={resolvedMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={ctaClass}
@@ -85,7 +118,7 @@ export function InfoRow() {
                 ¿Tienes dudas o quieres hacer un pedido especial?
               </p>
               <a
-                href={whatsappUrl(CONTACT_MESSAGE)}
+                href={whatsappUrl(CONTACT_MESSAGE, whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={ctaClass}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrderById } from "@/lib/queries/orders";
+import { getShopSettings } from "@/lib/queries/site";
 import { formatCop } from "@/lib/format";
 import { whatsappUrl } from "@/lib/config";
 import { WhatsAppIcon, MapPinIcon } from "@/components/icons";
@@ -25,7 +26,10 @@ export default async function AdminOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const order = await getOrderById(id);
+  const [order, settings] = await Promise.all([
+    getOrderById(id),
+    getShopSettings(),
+  ]);
 
   if (!order) {
     notFound();
@@ -134,7 +138,7 @@ export default async function AdminOrderDetailPage({
 
             <div className="flex flex-col gap-3 border-t border-[rgba(167,73,197,0.12)] pt-4">
               <a
-                href={whatsappUrl(waMessage)}
+                href={whatsappUrl(waMessage, settings.whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-brand h-11 text-sm"

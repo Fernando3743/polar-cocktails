@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { PolarLogo } from "@/components/icons";
 
 export default function AdminLoginPage() {
@@ -14,7 +15,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const hasEnv = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const hasEnv = hasSupabaseEnv();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,7 +52,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-88px)] items-center justify-center px-5 py-12">
+    <div className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="glass-card w-full max-w-[400px] p-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <PolarLogo className="h-14 w-14 text-polar-text" />
@@ -79,7 +80,7 @@ export default function AdminLoginPage() {
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@polar.co"
+              placeholder="correo@ejemplo.com"
               className="h-11 w-full rounded-xl border border-[rgba(167,73,197,0.2)] bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text outline-none transition-colors placeholder:text-polar-dim focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]"
             />
           </div>

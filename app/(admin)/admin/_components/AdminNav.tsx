@@ -12,6 +12,8 @@ const LINKS = [
   { href: "/admin/products", label: "Productos" },
   { href: "/admin/categories", label: "Categorías" },
   { href: "/admin/promos", label: "Promos" },
+  { href: "/admin/branding", label: "Multimedia" },
+  { href: "/admin/settings", label: "Configuración" },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
@@ -23,7 +25,7 @@ export function AdminNav({ email }: { email: string | null }) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-[rgba(167,73,197,0.15)] bg-[rgba(15,10,34,0.5)] p-5 md:h-[calc(100vh-88px)] md:w-60 md:border-b-0 md:border-r">
+    <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-[rgba(167,73,197,0.15)] bg-[rgba(15,10,34,0.5)] p-5 md:h-screen md:w-60 md:border-b-0 md:border-r">
       <Link href="/admin" className="flex items-center gap-3">
         <PolarLogo className="h-10 w-10 text-polar-text" />
         <div className="leading-tight">
@@ -34,7 +36,7 @@ export function AdminNav({ email }: { email: string | null }) {
         </div>
       </Link>
 
-      <nav className="flex flex-row flex-wrap gap-1.5 md:flex-1 md:flex-col">
+      <nav className="-mx-1 flex flex-row flex-nowrap gap-1.5 overflow-x-auto px-1 md:mx-0 md:flex-1 md:flex-col md:overflow-visible md:px-0">
         {LINKS.map((link) => {
           const active = isActive(pathname, link.href);
           return (
@@ -42,7 +44,7 @@ export function AdminNav({ email }: { email: string | null }) {
               key={link.href}
               href={link.href}
               className={clsx(
-                "rounded-xl px-4 py-2.5 text-sm font-500 transition-colors",
+                "shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-500 transition-colors md:shrink",
                 active
                   ? "bg-[linear-gradient(105deg,#a749c5,#9128da)] text-white shadow-[0_8px_24px_rgba(146,40,218,0.3)]"
                   : "text-polar-muted2 hover:bg-[rgba(255,255,255,0.04)] hover:text-polar-text",

@@ -35,12 +35,29 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isAdminRoute =
-    pathname.startsWith("/admin") && pathname !== "/admin/login";
+  const isLoginRoute = pathname === "/admin/login";
+  const isAdminRoute = pathname.startsWith("/admin") && !isLoginRoute;
 
-  if (isAdminRoute && !user) {
+  // Mirror requireAdmin() (lib/auth.ts): a user is an admin when authenticated
+  // and either ADMIN_EMAIL is unset/empty or their email matches it. Gating both
+  // redirects on isAdmin (not mere authentication) keeps the edge consistent with
+  // the shell layout and avoids a login<->/admin redirect loop for a logged-in
+  // non-admin or a mismatched ADMIN_EMAIL.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const isAdmin =
+    !!user &&
+    (!adminEmail || user.email?.toLowerCase() === adminEmail.toLowerCase());
+
+  if (isAdminRoute && !isAdmin) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
+    return NextResponse.redirect(url);
+  }
+
+  // UX-7: an authenticated admin has no reason to see the login page.
+  if (isLoginRoute && isAdmin) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
     return NextResponse.redirect(url);
   }
 

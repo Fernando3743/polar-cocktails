@@ -63,6 +63,7 @@ export function PromosManager({
   const [newStartsAt, setNewStartsAt] = useState("");
   const [newEndsAt, setNewEndsAt] = useState("");
   const [newMaxRedemptions, setNewMaxRedemptions] = useState("");
+  const [newActive, setNewActive] = useState(true);
 
   function run(
     action: () => Promise<{ ok: boolean; error?: string }>,
@@ -87,7 +88,7 @@ export function PromosManager({
       type: newType,
       value: parseIntOrNull(newValue) ?? 0,
       minSubtotalCop: parseIntOrNull(newMinSubtotal),
-      active: true,
+      active: newActive,
       startsAt: localInputToIso(newStartsAt),
       endsAt: localInputToIso(newEndsAt),
       maxRedemptions: parseIntOrNull(newMaxRedemptions),
@@ -107,6 +108,7 @@ export function PromosManager({
         setNewStartsAt("");
         setNewEndsAt("");
         setNewMaxRedemptions("");
+        setNewActive(true);
       },
     );
   }
@@ -282,6 +284,15 @@ export function PromosManager({
               />
             </label>
           </div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-polar-text">
+            <input
+              type="checkbox"
+              checked={newActive}
+              onChange={(e) => setNewActive(e.target.checked)}
+              className="h-4 w-4 accent-polar-purple"
+            />
+            Activa
+          </label>
           <div>
             <button
               type="submit"

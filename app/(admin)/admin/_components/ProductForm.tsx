@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 import { createProduct, updateProduct } from "@/lib/actions/products";
 import { productSchema, type ProductSchema } from "@/lib/validation/schemas";
 import { slugify } from "@/lib/format";
+import { uploadPublicImage } from "@/lib/storage";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { PlaceholderCup } from "@/components/icons";
 import type { Category } from "@/lib/types";
 
@@ -86,11 +88,43 @@ export function ProductForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Image upload (Supabase Storage). The submit payload still carries the plain
+  // imageUrl string; uploading just sets that string to the returned public URL.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabaseReady = hasSupabaseEnv();
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  // Whether the current imageUrl failed to render in the live preview.
+  const [previewError, setPreviewError] = useState(false);
+
   const validColor = /^#[0-9a-fA-F]{6}$/.test(accentColor);
 
   function handleNameChange(value: string) {
     setName(value);
     if (!slugTouched) setSlug(slugify(value));
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    // Reset the input so selecting the same file again re-triggers onChange.
+    e.target.value = "";
+    if (!file) return;
+
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const url = await uploadPublicImage("product-images", file);
+      setImageUrl(url);
+      setPreviewError(false);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error
+          ? err.message
+          : "No pudimos subir la imagen.",
+      );
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -241,13 +275,65 @@ export function ProductForm({
           </Field>
         </div>
 
-        <Field label="URL de imagen (opcional)" error={errors.imageUrl}>
+        <Field label="Imagen (opcional)" error={errors.imageUrl}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={!supabaseReady || uploading}
+            className="hidden"
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!supabaseReady || uploading}
+              className="btn-outline-rect h-11 shrink-0 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {uploading
+                ? "Subiendo..."
+                : imageUrl.trim()
+                  ? "Cambiar imagen"
+                  : "Subir imagen"}
+            </button>
+            {imageUrl.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  setImageUrl("");
+                  setUploadError(null);
+                  setPreviewError(false);
+                }}
+                className="text-sm text-polar-dim transition-colors hover:text-[#f3a9c1]"
+              >
+                Quitar imagen
+              </button>
+            )}
+          </div>
+          {!supabaseReady && (
+            <p className="text-xs text-polar-dim">
+              Configura Supabase para subir imágenes.
+            </p>
+          )}
+          {uploadError && (
+            <p className="text-xs text-[#f3a9c1]" role="alert">
+              {uploadError}
+            </p>
+          )}
+          {/* Manual URL fallback — keeps existing image URLs editable and is
+              what gets submitted (the products action/schema is unchanged). */}
           <input
             type="url"
             value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className={inputClass(!!errors.imageUrl)}
-            placeholder="https://..."
+            onChange={(e) => {
+              setImageUrl(e.target.value);
+              setPreviewError(false);
+              setUploadError(null);
+            }}
+            className={clsx(inputClass(!!errors.imageUrl), "mt-1")}
+            placeholder="https://...supabase.co/..."
+            aria-label="URL de imagen"
           />
         </Field>
 
@@ -332,12 +418,16 @@ export function ProductForm({
             Vista previa
           </p>
           <div className="flex h-40 w-full items-center justify-center">
-            {imageUrl.trim() ? (
+            {imageUrl.trim() && !previewError ? (
+              // Raw <img> on purpose: the preview must render an arbitrary URL
+              // the owner just typed/uploaded without needing next/image config.
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={imageUrl}
                 alt={name || "Producto"}
                 className="h-40 w-full rounded-xl object-cover"
+                onError={() => setPreviewError(true)}
+                onLoad={() => setPreviewError(false)}
               />
             ) : (
               <PlaceholderCup
@@ -346,6 +436,11 @@ export function ProductForm({
               />
             )}
           </div>
+          {imageUrl.trim() && previewError && (
+            <p className="text-xs text-[#f3a9c1]" role="alert">
+              No se pudo cargar la imagen.
+            </p>
+          )}
           <div className="w-full text-center">
             <p className="font-display text-lg font-600 text-polar-text">
               {name || "Nombre del producto"}

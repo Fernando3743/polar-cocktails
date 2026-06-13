@@ -58,6 +58,9 @@ function mapOrderItemRow(row: OrderItemRow): OrderItem {
  * Admin: list orders, newest first, optionally filtered by status.
  * Reads are only meaningful with a database (no public SELECT on orders);
  * without env configured this returns an empty list.
+ *
+ * This returns the full (unpaginated) list and is used by the dashboard for
+ * aggregate stats. The orders list page uses `getOrdersPage` for pagination.
  */
 export async function getOrders(status?: OrderStatus): Promise<Order[]> {
   if (!hasSupabaseEnv()) {
@@ -83,6 +86,101 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
   }
 
   return (data as OrderRow[]).map(mapOrderRow);
+}
+
+/** Default and only page size for the admin orders list. */
+export const ORDERS_PAGE_SIZE = 20;
+
+interface GetOrdersPageOptions {
+  status?: OrderStatus;
+  /** Free-text search across customer name, phone and short code. */
+  q?: string;
+  /** 1-based page number. */
+  page?: number;
+  pageSize?: number;
+}
+
+export interface OrdersPage {
+  orders: Order[];
+  /** Total rows matching the filters (across all pages). */
+  total: number;
+  /** 1-based page actually served (clamped to >= 1). */
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
+/**
+ * Admin: a single page of orders, newest first, with the total matching count.
+ * Supports an optional status filter and a free-text search (`q`) matched with
+ * `ilike` against customer name, phone and short code. Without DB env this
+ * returns an empty page (orders have no public SELECT policy).
+ */
+export async function getOrdersPage({
+  status,
+  q,
+  page = 1,
+  pageSize = ORDERS_PAGE_SIZE,
+}: GetOrdersPageOptions = {}): Promise<OrdersPage> {
+  const safePageSize = Math.max(1, pageSize);
+  const emptyPage: OrdersPage = {
+    orders: [],
+    total: 0,
+    page: 1,
+    pageSize: safePageSize,
+    pageCount: 0,
+  };
+
+  if (!hasSupabaseEnv()) {
+    return emptyPage;
+  }
+
+  const requestedPage = Math.max(1, Math.floor(page) || 1);
+  const from = (requestedPage - 1) * safePageSize;
+  const to = from + safePageSize - 1;
+
+  const supabase = await createClient();
+  let query = supabase
+    .from("orders")
+    .select(
+      "id, customer_name, customer_phone, address, delivery_type, notes, status, promo_code, discount_total, total_cop, short_code, created_at",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  const term = q?.trim();
+  if (term) {
+    // Escape PostgREST `ilike` wildcards/special chars in user input so a
+    // literal % or _ is matched literally rather than as a wildcard.
+    const escaped = term.replace(/[\\%_,()]/g, (ch) => `\\${ch}`);
+    const pattern = `%${escaped}%`;
+    query = query.or(
+      `customer_name.ilike.${pattern},customer_phone.ilike.${pattern},short_code.ilike.${pattern}`,
+    );
+  }
+
+  // A single fetch returns both the page rows and the full matching count
+  // (PostgREST `count: exact` is independent of `range`).
+  const { data, error, count } = await query;
+  if (error || !data) {
+    return emptyPage;
+  }
+
+  const total = count ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / safePageSize));
+
+  return {
+    orders: (data as OrderRow[]).map(mapOrderRow),
+    total,
+    page: requestedPage,
+    pageSize: safePageSize,
+    pageCount,
+  };
 }
 
 /**

@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatCop } from "@/lib/format";
 import { PlaceholderCup, PlusIcon } from "@/components/icons";
+import { ProductThumb } from "@/components/menu/ProductThumb";
 
 export function CartDrawer() {
   const {
@@ -192,19 +193,14 @@ export function CartDrawer() {
               >
                 {/* Thumbnail */}
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-polar-surface/60">
-                  {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <PlaceholderCup
-                      accentColor={item.accentColor}
-                      className="h-14"
-                    />
-                  )}
+                  <ProductThumb
+                    src={item.imageUrl}
+                    alt={item.name}
+                    accentColor={item.accentColor}
+                    width={64}
+                    height={64}
+                    placeholderClassName="h-14"
+                  />
                 </div>
 
                 {/* Details */}

@@ -3,15 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { requireAdmin as requireAdminAuth, isUniqueViolation } from "@/lib/auth";
 import { promoSchema, type PromoSchema } from "@/lib/validation/schemas";
 
 export type PromoActionResult =
   | { ok: true; promoId: string }
   | { ok: false; error: string };
-
-interface SupabaseLike {
-  auth: { getUser: () => Promise<{ data: { user: unknown } }> };
-}
 
 type AdminGuard =
   | { ok: false; error: string }
@@ -21,13 +18,9 @@ async function requireAdmin(): Promise<AdminGuard> {
   if (!hasSupabaseEnv()) {
     return { ok: false, error: "Base de datos no configurada." };
   }
+  const auth = await requireAdminAuth();
+  if (!auth.ok) return { ok: false, error: auth.error };
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await (supabase as unknown as SupabaseLike).auth.getUser();
-  if (!user) {
-    return { ok: false, error: "No autorizado." };
-  }
   return { ok: true, supabase };
 }
 
@@ -42,14 +35,6 @@ function toRow(input: PromoSchema) {
     ends_at: input.endsAt,
     max_redemptions: input.maxRedemptions,
   };
-}
-
-function isUniqueViolation(error: { code?: string; message?: string } | null) {
-  if (!error) return false;
-  return (
-    error.code === "23505" ||
-    (error.message?.toLowerCase().includes("duplicate") ?? false)
-  );
 }
 
 export async function createPromo(
