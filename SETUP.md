@@ -22,8 +22,8 @@ to demo the whole site.
 1. Create a project at https://supabase.com and copy `.env.example` to `.env.local`, filling:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` (server-only — never exposed to the browser)
-   - `ADMIN_EMAIL`
+   - `SUPABASE_SERVICE_ROLE_KEY` (server-only — never exposed to the browser; required for admin management)
+   - `SUPER_ADMIN_EMAIL` (the owner's email — the single super admin)
 2. Run the SQL migrations (in the Supabase SQL editor, **in order** — they are idempotent):
    - `supabase/migrations/0001_init.sql` — tables, enums, indexes, and seeds the 4 categories
      + 6 products.
@@ -35,12 +35,32 @@ to demo the whole site.
    - `supabase/migrations/0005_order_short_code.sql` — `orders.short_code`; re-issues
      `create_order` as the **final** version, which returns the `POL-` short code (text, not
      uuid) and enforces inventory, promo, and the Colombian-phone checks.
+   - `supabase/migrations/0006_review_fixes.sql` — order-integrity + inventory fixes.
+   - `supabase/migrations/0007_site_config.sql` — `site_assets` + `shop_settings` tables, RLS,
+     and the public Storage buckets for owner-editable images and shop settings.
+   - `supabase/migrations/0008_inventory_reactivation_fix.sql` — symmetric stock on cancel/reactivate.
+   - `supabase/migrations/0009_admin_rls.sql` — admin-role RLS hardening. **Apply LAST, and only
+     after every admin has a role claim** (see step 4) or you will lock admins out of the DB.
    - Then run the one-off image backfill from `LAUNCH_RUNBOOK.md` so DB-mode products show the
      real photos instead of the placeholder.
-3. In **Supabase → Authentication**: disable public sign-ups, then create one user with the
-   `ADMIN_EMAIL` and a password. That user can log in at `/admin`.
-4. Restart `pnpm dev`. The menu now loads from the database, orders persist, and `/admin`
-   lets you manage products/prices/categories and view + update order status.
+3. **Create the super admin** and disable public sign-ups:
+   - In **Supabase → Authentication**, disable public email sign-ups.
+   - Create the owner's auth user (or run
+     `node --env-file=.env.local scripts/create-admin-user.mjs <email> <password>`), then set
+     `SUPER_ADMIN_EMAIL` in `.env.local` to that email. The super admin can never be locked out
+     or removed via the UI, and is the only one who sees **Administradores** at `/admin/admins`.
+4. **Admin-role rollout (order matters — prevents lockout).** Migration `0009` makes the database
+   require an `app_metadata.role` claim for admin access, so set the claims BEFORE applying it:
+   1. `node --env-file=.env.local scripts/set-admin-role.mjs <super-email> super_admin`
+   2. For each pre-existing admin: `node --env-file=.env.local scripts/set-admin-role.mjs <email> admin`
+   3. Verify everyone can still log in and use `/admin`.
+   4. Apply `supabase/migrations/0009_admin_rls.sql`.
+   After that, the super admin creates new admins in-app at `/admin/admins` (email + password) —
+   no env edits, no redeploy. Regular admins manage the catalog, orders, promos, settings, and
+   multimedia, but not other admins.
+5. Restart `pnpm dev`. The menu loads from the database, orders persist, and `/admin` lets you
+   manage products/prices/categories, settings/multimedia, order status, and (super admin only)
+   admins.
 
 ## What still needs the client's input
 
@@ -82,18 +102,19 @@ Set these in Project Settings -> Environment Variables:
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes — half of `hasSupabaseEnv()` | Production |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes — half of `hasSupabaseEnv()` | Production |
-| `SUPABASE_SERVICE_ROLE_KEY` | No (no current code reads it) | Production, server only |
-| `ADMIN_EMAIL` | No (setup metadata only) | Production, server only |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes — admin user management (`lib/supabase/admin.ts`) | Production, server only |
+| `SUPER_ADMIN_EMAIL` | Yes — identifies the single super admin | Production, server only |
 | `NEXT_PUBLIC_SITE_URL` | Yes (metadata/canonical) | Production = real domain |
 | `NEXT_PUBLIC_ANALYTICS` | Yes (set to `1` to enable analytics) | Production = `1`; Preview unset |
 
-Only the two `NEXT_PUBLIC_SUPABASE_*` vars actually drive demo vs DB mode through
-`hasSupabaseEnv()` (`lib/supabase/env.ts`). `SUPABASE_SERVICE_ROLE_KEY` and
-`ADMIN_EMAIL` are setup metadata: the service-role key is reserved for future
-privileged server scripts (set it but never add the `NEXT_PUBLIC_` prefix — a
-leaked service-role key is full database access), and `ADMIN_EMAIL` only records
-which single Supabase user to create. Set all of them for completeness, but do not
-expect the running app to read the latter two.
+The two `NEXT_PUBLIC_SUPABASE_*` vars drive demo vs DB mode through `hasSupabaseEnv()`
+(`lib/supabase/env.ts`). `SUPABASE_SERVICE_ROLE_KEY` is read server-side by
+`lib/supabase/admin.ts` to create/manage admin users (it bypasses RLS — never add the
+`NEXT_PUBLIC_` prefix; a leaked service-role key is full database access).
+`SUPER_ADMIN_EMAIL` identifies the single super admin (the owner) for both the app and the
+DB-layer `is_admin()` check; regular admins are created in-app and carry an
+`app_metadata.role` claim instead of an env entry. The legacy `ADMIN_EMAIL` var is no longer
+read by the app.
 
 `NEXT_PUBLIC_SITE_URL` should be the final `https://` domain in Production; it is
 read by `lib/seo.ts` (`siteUrl()`) and used for `metadataBase`, Open Graph, the

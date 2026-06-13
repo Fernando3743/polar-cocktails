@@ -21,8 +21,19 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminNav({ email }: { email: string | null }) {
+export function AdminNav({
+  email,
+  isSuperAdmin,
+}: {
+  email: string | null;
+  isSuperAdmin: boolean;
+}) {
   const pathname = usePathname();
+
+  // The super admin gets an extra owner-only link to manage other admins.
+  const links = isSuperAdmin
+    ? [...LINKS, { href: "/admin/admins", label: "Administradores" }]
+    : LINKS;
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-[rgba(167,73,197,0.15)] bg-[rgba(15,10,34,0.5)] p-5 md:h-screen md:w-60 md:border-b-0 md:border-r">
@@ -37,7 +48,7 @@ export function AdminNav({ email }: { email: string | null }) {
       </Link>
 
       <nav className="-mx-1 flex flex-row flex-nowrap gap-1.5 overflow-x-auto px-1 md:mx-0 md:flex-1 md:flex-col md:overflow-visible md:px-0">
-        {LINKS.map((link) => {
+        {links.map((link) => {
           const active = isActive(pathname, link.href);
           return (
             <Link

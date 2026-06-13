@@ -38,21 +38,21 @@ export async function updateSession(request: NextRequest) {
   const isLoginRoute = pathname === "/admin/login";
   const isAdminRoute = pathname.startsWith("/admin") && !isLoginRoute;
 
-  // Mirror requireAdmin() (lib/auth.ts): a user is an admin when authenticated
-  // and either ADMIN_EMAIL is unset/empty or their email is in it (ADMIN_EMAIL
-  // may be a single email or a comma-separated allowlist). Gating both redirects
-  // on isAdmin (not mere authentication) keeps the edge consistent with the shell
-  // layout and avoids a login<->/admin redirect loop for a non-admin. Parsed
-  // inline (not imported from lib/auth) so this edge middleware stays free of
-  // server-only modules.
-  const adminAllowlist = (process.env.ADMIN_EMAIL ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter((email) => email.length > 0);
+  // Mirror requireAdmin() (lib/auth.ts) using only data already on the user from
+  // getUser() (no extra DB read): a user is an admin when they are the configured
+  // super admin (SUPER_ADMIN_EMAIL) OR carry app_metadata.role in
+  // {admin, super_admin}. Gating both redirects on isAdmin (not mere
+  // authentication) keeps the edge consistent with the shell layout and avoids a
+  // login<->/admin redirect loop for a non-admin. Parsed inline (not imported
+  // from lib/auth) so this edge middleware stays free of server-only modules.
+  const superEmail = (process.env.SUPER_ADMIN_EMAIL ?? "").trim().toLowerCase();
   const userEmail = user?.email?.toLowerCase() ?? "";
+  const role = (user?.app_metadata as { role?: unknown } | undefined)?.role;
   const isAdmin =
     !!user &&
-    (adminAllowlist.length === 0 || adminAllowlist.includes(userEmail));
+    ((superEmail !== "" && userEmail === superEmail) ||
+      role === "admin" ||
+      role === "super_admin");
 
   if (isAdminRoute && !isAdmin) {
     const url = request.nextUrl.clone();

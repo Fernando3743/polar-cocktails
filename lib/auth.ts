@@ -6,13 +6,39 @@ export type AdminAuthResult =
   | { ok: false; error: string };
 
 /**
- * Authorizes an admin request server-side.
- *
- * Uses the server Supabase client's `getUser()` (validates the JWT, never
- * `getSession()`). When `ADMIN_EMAIL` is set (server-only, never `NEXT_PUBLIC`),
- * the authenticated user's email must be in it; `ADMIN_EMAIL` may be a single
- * email or a comma-separated allowlist of admins. When unset/empty, any
- * authenticated user passes so there is no lockout.
+ * The single super admin's email, from SUPER_ADMIN_EMAIL (server-only, never
+ * NEXT_PUBLIC). Returns null when unset/empty so isSuperAdmin fails CLOSED.
+ */
+export function superAdminEmail(): string | null {
+  const value = (process.env.SUPER_ADMIN_EMAIL ?? "").trim().toLowerCase();
+  return value.length > 0 ? value : null;
+}
+
+/**
+ * True when `email` is the configured super admin. Fails CLOSED: when
+ * SUPER_ADMIN_EMAIL is unset, nobody is the super admin (no accidental owner).
+ */
+export function isSuperAdmin(email: string | null | undefined): boolean {
+  const superEmail = superAdminEmail();
+  return superEmail !== null && (email ?? "").toLowerCase() === superEmail;
+}
+
+/**
+ * True when the user carries an admin role in app_metadata. app_metadata is
+ * writable only by the service-role key (never by the user), so the claim is
+ * trustworthy and rides in the JWT — no extra DB read is needed to authorize.
+ */
+function hasAdminRole(user: User): boolean {
+  const role = (user.app_metadata as { role?: unknown } | undefined)?.role;
+  return role === "admin" || role === "super_admin";
+}
+
+/**
+ * Authorizes an admin request server-side. Uses getUser() (validates the JWT,
+ * never getSession()). A user passes when they are the super admin (by
+ * SUPER_ADMIN_EMAIL) OR carry app_metadata.role in {admin, super_admin}. Fails
+ * closed otherwise — there is no email-allowlist fallback (the DB-layer
+ * is_admin() in migration 0009 mirrors this on the role claim).
  */
 export async function requireAdmin(): Promise<AdminAuthResult> {
   const supabase = await createClient();
@@ -24,7 +50,7 @@ export async function requireAdmin(): Promise<AdminAuthResult> {
     return { ok: false, error: "No autorizado." };
   }
 
-  if (!isAllowedAdminEmail(user.email)) {
+  if (!isSuperAdmin(user.email) && !hasAdminRole(user)) {
     return { ok: false, error: "No autorizado." };
   }
 
@@ -32,27 +58,25 @@ export async function requireAdmin(): Promise<AdminAuthResult> {
 }
 
 /**
- * Parses `ADMIN_EMAIL` (single email or comma-separated allowlist) into a
- * lowercased list. Server-only — `ADMIN_EMAIL` is never exposed to the client.
+ * Authorizes a SUPER-admin-only request (managing other admins). Only the
+ * SUPER_ADMIN_EMAIL user passes; everyone else — including regular admins — is
+ * rejected.
  */
-export function adminEmailAllowlist(): string[] {
-  return (process.env.ADMIN_EMAIL ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter((email) => email.length > 0);
-}
+export async function requireSuperAdmin(): Promise<AdminAuthResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-/**
- * True when `email` is an allowed admin. An empty allowlist (ADMIN_EMAIL
- * unset/empty) allows any address so there is no lockout; the caller is still
- * responsible for requiring an authenticated user.
- */
-export function isAllowedAdminEmail(email: string | null | undefined): boolean {
-  const allowlist = adminEmailAllowlist();
-  return (
-    allowlist.length === 0 ||
-    allowlist.includes((email ?? "").toLowerCase())
-  );
+  if (!user) {
+    return { ok: false, error: "No autorizado." };
+  }
+
+  if (!isSuperAdmin(user.email)) {
+    return { ok: false, error: "No autorizado." };
+  }
+
+  return { ok: true, user };
 }
 
 /** True when the Postgres error is a unique-constraint violation (code 23505). */

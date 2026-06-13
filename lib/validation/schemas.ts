@@ -201,3 +201,22 @@ export const orderStatusSchema = z.enum([
 ]);
 
 export type OrderStatusSchema = z.infer<typeof orderStatusSchema>;
+
+// Admin management (super-admin only). Used by lib/actions/admins.ts to create a
+// panel admin via the service-role API and to reset an admin's password.
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Correo inválido.");
+
+export const passwordSchema = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres.");
+
+export const createAdminSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
+
+export type CreateAdminSchema = z.infer<typeof createAdminSchema>;

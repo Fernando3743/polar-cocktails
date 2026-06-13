@@ -43,5 +43,6 @@ if (error) {
 
 console.log(`Created admin user: ${data.user.email} (${data.user.id})`);
 console.log(
-  "Next: add this email to ADMIN_EMAIL in .env.local, then restart the server.",
+  "Next (super admin): set SUPER_ADMIN_EMAIL to this email and run set-admin-role.mjs " +
+    "<email> super_admin. Regular admins are better created in-app at /admin/admins.",
 );
