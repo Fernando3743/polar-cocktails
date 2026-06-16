@@ -88,8 +88,8 @@ export function ProductForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Image upload (Supabase Storage). The submit payload still carries the plain
-  // imageUrl string; uploading just sets that string to the returned public URL.
+  // Image upload (Supabase Storage). The submit payload still carries the
+  // stored public URL, but admins can only change it through Storage upload.
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabaseReady = hasSupabaseEnv();
   const [uploading, setUploading] = useState(false);
@@ -328,20 +328,6 @@ export function ProductForm({
               {uploadError}
             </p>
           )}
-          {/* Manual URL fallback — keeps existing image URLs editable and is
-              what gets submitted (the products action/schema is unchanged). */}
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => {
-              setImageUrl(e.target.value);
-              setPreviewError(false);
-              setUploadError(null);
-            }}
-            className={clsx(inputClass(!!errors.imageUrl), "mt-1")}
-            placeholder="https://...supabase.co/..."
-            aria-label="URL de imagen"
-          />
         </Field>
 
         <Field
@@ -420,27 +406,27 @@ export function ProductForm({
       </div>
 
       {/* Live preview */}
-      <aside>
+      <aside className="mx-auto w-full max-w-[360px] lg:max-w-none">
         <div className="glass-card flex flex-col items-center gap-4 p-6 lg:sticky lg:top-[104px]">
           <p className="self-start text-xs uppercase tracking-[0.14em] text-polar-dim">
             Vista previa
           </p>
-          <div className="flex h-40 w-full items-center justify-center">
+          <div className="flex h-44 w-full items-center justify-center overflow-hidden rounded-xl bg-[rgba(4,5,18,0.35)] p-3">
             {imageUrl.trim() && !previewError ? (
-              // Raw <img> on purpose: the preview must render an arbitrary URL
-              // the owner just typed/uploaded without needing next/image config.
+              // Raw <img> on purpose: the preview must render uploaded Storage
+              // URLs without needing next/image remote host configuration.
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={imageUrl}
                 alt={name || "Producto"}
-                className="h-40 w-full rounded-xl object-cover"
+                className="h-full w-full object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.45)]"
                 onError={() => setPreviewError(true)}
                 onLoad={() => setPreviewError(false)}
               />
             ) : (
               <PlaceholderCup
                 accentColor={validColor ? accentColor : "#7C3AED"}
-                className="h-40"
+                className="h-full"
               />
             )}
           </div>

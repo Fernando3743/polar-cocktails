@@ -17,6 +17,36 @@ Without Supabase env vars the storefront runs in **demo mode**: the menu comes f
 `lib/seed-data.ts`, and checkout still completes (orders are not persisted). This is enough
 to demo the whole site.
 
+## Choosing a Supabase connection (cloud vs local)
+
+Next.js only auto-loads `.env.local`, so to switch between the production Supabase project
+and a local `supabase start` stack, `.env.local` is a **symlink** that points at one of two
+real profile files:
+
+- `.env.cloud` — the production cloud project (publishable + secret keys, `SUPER_ADMIN_EMAIL`,
+  and `SUPABASE_DB_PASSWORD` for the CLI).
+- `.env.localdb` — a local `supabase start` stack at `http://127.0.0.1:54321` with the fixed
+  local-dev keys.
+
+Both files are gitignored (the `.env.*` rule) and hold secrets, so they are never committed.
+Switch with the helper scripts, then run the server normally:
+
+```bash
+pnpm env:cloud    # point .env.local -> .env.cloud (production)
+pnpm env:local    # point .env.local -> .env.localdb (local stack)
+pnpm env:which    # show which profile is active
+pnpm dev          # uses whichever profile is active (same for build/start)
+```
+
+Notes:
+
+- **Edit the profile files** (`.env.cloud` / `.env.localdb`), not `.env.local`. Writing to
+  `.env.local` follows the symlink into the active profile, which works but is easy to lose
+  track of; `pnpm env:which` tells you which one you are on.
+- Leaving `.env.local` absent entirely (delete the symlink) drops back to **demo mode**.
+- The local profile needs its own stack running (`supabase start`) plus its own migrations,
+  seed, and admin user — it is a separate database from the cloud project.
+
 ## Enable real ordering + admin (Supabase)
 
 1. Create a project at https://supabase.com and copy `.env.example` to `.env.local`, filling:

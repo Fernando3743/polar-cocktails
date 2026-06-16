@@ -57,9 +57,9 @@ export interface NavLink {
 export const NAV_LINKS: NavLink[] = [
   { label: "Inicio", href: "/" },
   { label: "Menú", href: "/menu" },
-  { label: "Nosotros", href: "#nosotros" },
-  { label: "Ubicación", href: "#ubicacion" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Nosotros", href: "/nosotros" },
+  { label: "Ubicación", href: "/ubicacion" },
+  { label: "Contacto", href: "/contacto" },
 ];
 
 export function whatsappUrl(

@@ -2,6 +2,7 @@ import { Hero } from "@/components/sections/Hero";
 import { Sabores } from "@/components/sections/Sabores";
 import { Nosotros } from "@/components/sections/Nosotros";
 import { InfoRow } from "@/components/sections/InfoRow";
+import { HomeVideo } from "@/components/sections/HomeVideo";
 import { Snowfall } from "@/components/layout/Snowfall";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getProducts, getCategories } from "@/lib/queries/menu";
@@ -48,6 +49,7 @@ export default async function Home() {
         />
         <Sabores products={products} categories={categories} />
         <Nosotros />
+        <HomeVideo />
         <InfoRow
           addressLines={settings.addressLines}
           mapsUrl={settings.mapsUrl}

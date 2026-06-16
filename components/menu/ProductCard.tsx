@@ -1,7 +1,9 @@
 "use client";
 
+import { type KeyboardEvent, type MouseEvent, useState } from "react";
 import { clsx } from "clsx";
 import { PlusIcon } from "@/components/icons";
+import { ProductDetailModal } from "@/components/menu/ProductDetailModal";
 import { ProductThumb } from "@/components/menu/ProductThumb";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatCop } from "@/lib/format";
@@ -13,18 +15,41 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem, openCart } = useCart();
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const isFeatured = product.sortOrder === 1;
   // Tracked products at zero stock are sold out too; untracked stock is null/undefined.
   const soldOut = product.soldOut || product.stockQty === 0;
 
-  function handleAdd() {
+  function handleAdd(event?: MouseEvent<HTMLButtonElement>) {
+    event?.stopPropagation();
     if (soldOut) return;
     addItem(product);
     openCart();
   }
 
+  function handleAddFromModal() {
+    if (soldOut) return;
+    addItem(product);
+    setDetailsOpen(false);
+    openCart();
+  }
+
+  function handleCardKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    setDetailsOpen(true);
+  }
+
   return (
-    <div className="relative flex h-[196px] flex-col overflow-hidden rounded-[8px] border border-[rgba(167,73,197,0.24)] bg-[rgba(13,12,32,0.86)] p-[14px] shadow-[0_12px_28px_rgba(0,0,0,0.46)] md:h-[323px] md:p-[14px]">
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Ver detalles de ${product.name}`}
+        onClick={() => setDetailsOpen(true)}
+        onKeyDown={handleCardKeyDown}
+        className="relative flex h-[196px] cursor-pointer flex-col overflow-hidden rounded-[8px] border border-[rgba(167,73,197,0.24)] bg-[rgba(13,12,32,0.86)] p-[14px] shadow-[0_12px_28px_rgba(0,0,0,0.46)] transition-[border-color,transform] hover:border-[rgba(184,77,255,0.52)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-polar-purple md:h-[323px] md:p-[14px]"
+      >
       <button
         type="button"
         onClick={handleAdd}
@@ -88,6 +113,16 @@ export function ProductCard({ product }: ProductCardProps) {
           <PlusIcon className="h-[13px] w-[13px]" />
         </button>
       </div>
-    </div>
+      </div>
+
+      {detailsOpen && (
+        <ProductDetailModal
+          product={product}
+          soldOut={soldOut}
+          onClose={() => setDetailsOpen(false)}
+          onAddToCart={handleAddFromModal}
+        />
+      )}
+    </>
   );
 }

@@ -59,7 +59,7 @@ export default async function SiteLayout({
         socials={settings.socialLinks}
         addressLines={settings.addressLines}
       />
-      <MobileBottomNav />
+      <MobileBottomNav whatsappNumber={settings.whatsappNumber} />
       <CartDrawer />
       <Analytics />
     </Providers>

@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "ln -sf .env.localdb .env.local && next dev",
+    "prod": "ln -sf .env.cloud .env.local && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "env:cloud": "ln -sf .env.cloud .env.local && echo 'active env -> cloud (prod Supabase)'",
+    "env:local": "ln -sf .env.localdb .env.local && echo 'active env -> local (supabase start)'",
+    "env:which": "readlink .env.local || echo '.env.local is a plain file (no profile active)'"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

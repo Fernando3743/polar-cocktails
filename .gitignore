@@ -17,6 +17,9 @@
 next-env.d.ts
 *.tsbuildinfo
 
+# large media served from Supabase Storage / CDN, not git (e.g. the home hero video)
+*.mov
+
 # env files — keep real secrets out, but track the example
 .env
 .env.*

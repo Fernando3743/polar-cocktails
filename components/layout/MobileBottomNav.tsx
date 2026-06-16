@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { CupIcon, WhatsAppIcon } from "@/components/icons";
-import { useCart } from "@/components/cart/CartProvider";
+import { useMobileMenu } from "@/components/layout/MobileMenuProvider";
+import { whatsappUrl } from "@/lib/config";
 
 interface IconProps {
   className?: string;
@@ -72,17 +73,33 @@ const navItems = [
   { href: "/", label: "Inicio", Icon: HomeIcon },
   { href: "/menu", label: "Menú", Icon: CupIcon },
   { href: "/checkout", label: "Pedidos", Icon: OrdersIcon },
-  { href: "/admin", label: "Cuenta", Icon: UserIcon },
+  { href: "/contacto", label: "Contacto", Icon: UserIcon },
 ];
 
-export function MobileBottomNav() {
+const centerActionClass =
+  "mb-[15px] inline-flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full bg-gradient-to-br from-[#B84DFF] to-[#9128DA] text-white shadow-[0_0_28px_rgba(177,62,255,0.72)]";
+
+const GENERAL_WHATSAPP_MESSAGE = "Hola, me gustaria hacer un pedido";
+
+export function MobileBottomNav({
+  whatsappNumber,
+}: {
+  whatsappNumber?: string;
+}) {
   const pathname = usePathname();
-  const { openCart } = useCart();
+  const { mobileMenuOpen } = useMobileMenu();
+  const whatsappHref = whatsappUrl(GENERAL_WHATSAPP_MESSAGE, whatsappNumber);
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[64px] max-w-[360px] items-center justify-between rounded-t-[28px] border border-b-0 border-[rgba(151,98,255,0.28)] bg-[rgba(7,8,26,0.88)] px-[18px] pb-[6px] shadow-[0_-16px_40px_rgba(0,0,0,0.52)] backdrop-blur-md md:hidden"
+      className={clsx(
+        "fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[64px] max-w-[360px] items-center justify-between rounded-t-[28px] border border-b-0 border-[rgba(151,98,255,0.28)] bg-[rgba(7,8,26,0.88)] px-[18px] pb-[6px] shadow-[0_-16px_40px_rgba(0,0,0,0.52)] backdrop-blur-md transition-all duration-200 md:hidden",
+        mobileMenuOpen
+          ? "pointer-events-none translate-y-full opacity-0"
+          : "translate-y-0 opacity-100",
+      )}
       aria-label="Navegación móvil"
+      aria-hidden={mobileMenuOpen}
     >
       {navItems.slice(0, 2).map(({ href, label, Icon }) => {
         const active = pathname === href;
@@ -101,15 +118,16 @@ export function MobileBottomNav() {
         );
       })}
 
-      <button
-        type="button"
-        onClick={openCart}
-        className="mb-[15px] inline-flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full bg-gradient-to-br from-[#B84DFF] to-[#9128DA] text-white shadow-[0_0_28px_rgba(177,62,255,0.72)]"
-        aria-label="Pedir, abrir carrito"
+      <a
+        href={whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={centerActionClass}
+        aria-label="Enviar pedido por WhatsApp"
       >
         <WhatsAppIcon className="h-[25px] w-[25px]" />
-        <span className="mt-[1px] text-[10px] font-bold">Pedir</span>
-      </button>
+        <span className="mt-[1px] text-[10px] font-bold">WhatsApp</span>
+      </a>
 
       {navItems.slice(2).map(({ href, label, Icon }) => {
         const active = pathname === href;
