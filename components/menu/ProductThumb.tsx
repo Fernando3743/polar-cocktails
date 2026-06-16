@@ -74,7 +74,7 @@ export function ProductThumb({
       alt={alt}
       width={width ?? 64}
       height={height ?? 64}
-      className={clsx("h-full w-full object-cover", className)}
+      className={clsx("h-full w-full object-contain", className)}
       onError={() => setBroken(true)}
     />
   );

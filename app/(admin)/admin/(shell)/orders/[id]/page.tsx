@@ -96,30 +96,18 @@ export default async function AdminOrderDetailPage({
               ))}
             </ul>
           )}
-          {order.discountCop > 0 && (
-            <div className="flex items-center justify-between border-t border-[rgba(167,73,197,0.12)] px-5 py-4">
-              <span className="text-sm text-polar-muted">
-                Descuento{order.promoCode ? ` (${order.promoCode})` : ""}
-              </span>
-              <span className="text-sm font-600 text-polar-magenta">
-                -{formatCop(order.discountCop)}
-              </span>
-            </div>
-          )}
           <div className="flex items-center justify-between border-t border-[rgba(167,73,197,0.12)] px-5 py-4">
             <span className="text-sm text-polar-muted">Total</span>
             <span className="font-display text-xl font-700 text-polar-text">
               {formatCop(order.totalCop)}
             </span>
           </div>
-          {items.length > 0 &&
-            itemsTotal - order.discountCop !== order.totalCop && (
-              <p className="px-5 pb-4 text-xs text-[#e0c08a]">
-                Aviso: la suma de las líneas ({formatCop(itemsTotal)}) menos el
-                descuento ({formatCop(order.discountCop)}) difiere del total
-                guardado.
-              </p>
-            )}
+          {items.length > 0 && itemsTotal !== order.totalCop && (
+            <p className="px-5 pb-4 text-xs text-[#e0c08a]">
+              Aviso: la suma de las líneas ({formatCop(itemsTotal)}) difiere
+              del total guardado.
+            </p>
+          )}
         </div>
 
         {/* Customer + status */}

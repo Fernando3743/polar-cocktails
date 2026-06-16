@@ -61,10 +61,12 @@ are unaffected.
    3. `supabase/migrations/0003_*.sql`
    4. `supabase/migrations/0004_*.sql`
    5. `supabase/migrations/0005_*.sql`
+   6. Continue through the remaining migrations in order, ending with
+      `supabase/migrations/0010_remove_promos.sql`.
 
    The migrations are idempotent, so re-running is safe. The final `create_order`
-   RPC (from `0005`) returns the order short code (a `POL-` code) and includes the
-   inventory checks, promo logic, and the tightened phone guard.
+   RPC returns the order short code (a `POL-` code) and includes the inventory
+   checks and the tightened phone guard.
 4. Backfill product images so DB mode shows the same photos as the demo (the seed
    inserts `image_url = null`). Run this once in the SQL editor, verbatim:
 

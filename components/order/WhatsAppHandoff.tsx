@@ -5,7 +5,6 @@ import Link from "next/link";
 import { WhatsAppIcon } from "@/components/icons";
 import { whatsappUrl } from "@/lib/config";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { formatCop } from "@/lib/format";
 import type { WhatsAppOrderSummary } from "@/lib/whatsapp";
 
 const SS_KEY = "polar_last_order:v1"; // sessionStorage key (matches CheckoutForm)
@@ -13,8 +12,6 @@ const SS_KEY = "polar_last_order:v1"; // sessionStorage key (matches CheckoutFor
 export function WhatsAppHandoff({
   orderId,
   serverSummary,
-  demoPromoCode = null,
-  demoDiscountCop = 0,
   whatsappNumber,
 }: {
   orderId: string;
@@ -22,10 +19,6 @@ export function WhatsAppHandoff({
   // admin viewing the order). Null for anonymous customers — they get the
   // summary from sessionStorage after mount.
   serverSummary: WhatsAppOrderSummary | null;
-  // Demo-mode-only fallback banner values from the ?code/?discount query
-  // params. Never populated in DB mode (those params are not trusted there).
-  demoPromoCode?: string | null;
-  demoDiscountCop?: number;
   // Shop WhatsApp number from settings, threaded down from the server page.
   // Used for the generic fallback link; falls back to the config default.
   whatsappNumber?: string;
@@ -52,7 +45,7 @@ export function WhatsAppHandoff({
         setSummary(stored.summary);
       }
     } catch {
-      // ignore; keep serverSummary (or null -> generic link / demo fallback)
+      // ignore; keep serverSummary (or null -> generic link)
     }
   }, [orderId]);
 
@@ -64,37 +57,20 @@ export function WhatsAppHandoff({
         whatsappNumber,
       );
 
-  // Discount banner, built from the server summary when present, otherwise the
-  // demo-only query-param fallback. Never derived from cart state.
-  const promoCode = summary
-    ? (summary.promoCode ?? null)
-    : demoPromoCode;
-  const discountCop = summary ? (summary.discountCop ?? 0) : demoDiscountCop;
-  const hasDiscount = discountCop > 0;
-
   return (
-    <>
-      {hasDiscount && (
-        <div className="w-full rounded-2xl border border-[rgba(146,40,218,0.3)] bg-[rgba(146,40,218,0.1)] px-5 py-3 text-sm text-polar-text">
-          Descuento aplicado
-          {promoCode ? `: ${promoCode}` : ""} (-{formatCop(discountCop)})
-        </div>
-      )}
-
-      <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-brand w-full sm:w-auto"
-        >
-          <WhatsAppIcon className="h-[18px] w-[18px]" />
-          Enviar pedido por WhatsApp
-        </a>
-        <Link href="/menu" className="btn-ghost w-full sm:w-auto">
-          Seguir comprando
-        </Link>
-      </div>
-    </>
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-brand w-full sm:w-auto"
+      >
+        <WhatsAppIcon className="h-[18px] w-[18px]" />
+        Enviar pedido por WhatsApp
+      </a>
+      <Link href="/menu" className="btn-ghost w-full sm:w-auto">
+        Seguir comprando
+      </Link>
+    </div>
   );
 }

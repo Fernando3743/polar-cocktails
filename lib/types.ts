@@ -45,7 +45,6 @@ export interface OrderInput {
   address?: string;
   deliveryType: DeliveryType;
   notes?: string;
-  promoCode?: string; // the code the customer applied (re-validated server-side)
   items: { productId: string; qty: number }[];
 }
 
@@ -57,9 +56,7 @@ export interface Order {
   deliveryType: DeliveryType;
   notes: string | null;
   status: OrderStatus;
-  promoCode: string | null;
-  discountCop: number; // maps to orders.discount_total (DB default 0)
-  totalCop: number; // subtotal - discount, clamped >= 0
+  totalCop: number;
   shortCode?: string | null; // human-friendly POL- order reference (DB only)
   createdAt: string;
   items?: OrderItem[];
@@ -72,31 +69,6 @@ export interface OrderItem {
   qty: number;
   unitPriceCop: number;
   lineTotalCop: number;
-}
-
-export type PromoType = "percent" | "fixed";
-
-// Result of validating a code (shared by RPC + demo path + checkout UI).
-export interface PromoValidation {
-  valid: boolean;
-  type: PromoType | null;
-  value: number | null;
-  discountCop: number; // computed discount for the given subtotal
-  reason: string | null; // Spanish error message when invalid
-}
-
-// Admin manager shape.
-export interface AdminPromo {
-  id: string;
-  code: string;
-  type: PromoType;
-  value: number;
-  minSubtotalCop: number | null;
-  active: boolean;
-  startsAt: string | null;
-  endsAt: string | null;
-  maxRedemptions: number | null;
-  timesRedeemed: number;
 }
 
 // Editable image slots backed by Supabase Storage (site_assets table). The

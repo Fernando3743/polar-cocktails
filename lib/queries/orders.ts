@@ -10,8 +10,6 @@ interface OrderRow {
   delivery_type: Order["deliveryType"];
   notes: string | null;
   status: OrderStatus;
-  promo_code: string | null;
-  discount_total: number;
   total_cop: number;
   short_code: string | null;
   created_at: string;
@@ -35,8 +33,6 @@ function mapOrderRow(row: OrderRow): Order {
     deliveryType: row.delivery_type,
     notes: row.notes,
     status: row.status,
-    promoCode: row.promo_code,
-    discountCop: row.discount_total,
     totalCop: row.total_cop,
     shortCode: row.short_code,
     createdAt: row.created_at,
@@ -71,7 +67,7 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
   let query = supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_phone, address, delivery_type, notes, status, promo_code, discount_total, total_cop, short_code, created_at",
+      "id, customer_name, customer_phone, address, delivery_type, notes, status, total_cop, short_code, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -143,7 +139,7 @@ export async function getOrdersPage({
   let query = supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_phone, address, delivery_type, notes, status, promo_code, discount_total, total_cop, short_code, created_at",
+      "id, customer_name, customer_phone, address, delivery_type, notes, status, total_cop, short_code, created_at",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -201,7 +197,7 @@ async function getOrderBy(
   const { data: orderData, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_phone, address, delivery_type, notes, status, promo_code, discount_total, total_cop, short_code, created_at",
+      "id, customer_name, customer_phone, address, delivery_type, notes, status, total_cop, short_code, created_at",
     )
     .eq(column, value)
     .maybeSingle();

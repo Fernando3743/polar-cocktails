@@ -97,8 +97,8 @@ export function Hero({
         <div className="absolute inset-y-0 left-0 w-[55%] bg-gradient-to-r from-black via-black/90 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-[74px] bg-gradient-to-t from-black to-transparent" />
       </div>
-      <Container className="relative z-10 px-7 md:px-4 lg:px-10">
-        <div className="grid min-h-[310px] items-start gap-5 md:min-h-[456px] lg:grid-cols-[360px_1fr]">
+      <Container className="relative z-10 px-7 md:px-8 lg:px-16">
+        <div className="grid min-h-[310px] items-start gap-5 md:min-h-[456px] md:grid-cols-[360px_1fr]">
           <div className="relative z-20 flex flex-col">
             <span className="mt-[25px] inline-flex h-[22px] w-fit items-center gap-2 rounded-full border border-[rgba(167,73,197,0.62)] bg-[rgba(11,7,28,0.72)] px-[14px] text-[10px] font-semibold uppercase text-[#DEB7FF] shadow-[0_0_15px_rgba(177,62,255,0.7)] md:mt-[28px] md:h-[28px] md:bg-[rgba(146,40,218,0.15)] md:px-[16px] md:text-[11px] md:tracking-[0.14em] md:text-[#D9CBF2]">
               <SnowflakeIcon className="h-[14px] w-[14px] text-polar-snow" />
@@ -163,8 +163,8 @@ export function Hero({
             </div>
           </div>
 
-          <div className="relative hidden h-[456px] lg:block">
-            <div className="absolute top-[-26px] right-[18px] h-[500px] w-[610px] overflow-hidden">
+          <div className="relative hidden h-[456px] md:block">
+            <div className="absolute top-[8px] right-[-40px] h-[420px] w-[500px] overflow-hidden lg:top-[-26px] lg:right-[64px] lg:h-[500px] lg:w-[610px]">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[120px] bg-gradient-to-r from-black to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[110px] bg-gradient-to-t from-black to-transparent" />
               <Image
@@ -172,7 +172,7 @@ export function Hero({
                 alt="Cuatro cócteles granizados Polar sobre pedestales morados"
                 priority
                 {...(heroDesktopUrl ? {} : { placeholder: "blur" as const })}
-                sizes="(min-width: 1024px) 620px, 0px"
+                sizes="(min-width: 1024px) 620px, (min-width: 768px) 500px, 0px"
                 className="h-full w-full select-none object-cover object-[50%_45%]"
               />
             </div>

@@ -18,10 +18,8 @@ export interface WhatsAppOrderSummary {
   address?: string | null; // only meaningful for delivery
   notes?: string | null;
   lines: WhatsAppOrderLine[];
-  subtotalCop: number; // server-computed subtotal, before discount
-  totalCop: number; // server-computed total (already discounted)
-  promoCode?: string | null; // applied promo code, if any
-  discountCop?: number | null; // discount applied to the total, if any
+  subtotalCop: number; // server-computed subtotal
+  totalCop: number; // server-computed total
 }
 
 // Customer-entered contact / delivery fields. These are not part of the
@@ -38,9 +36,9 @@ export interface WhatsAppContact {
 
 /**
  * Combines the server-trusted financial summary (items, unit prices, subtotal,
- * discount, total, promo code) with the customer-entered contact/delivery
- * details into the WhatsApp message payload. Line items and every amount come
- * from `summary` — never from cart state.
+ * total) with the customer-entered contact/delivery details into the WhatsApp
+ * message payload. Line items and every amount come from `summary` — never from
+ * cart state.
  */
 export function whatsappSummaryFromOrder(
   summary: OrderSummary,
@@ -61,8 +59,6 @@ export function whatsappSummaryFromOrder(
     })),
     subtotalCop: summary.subtotalCop,
     totalCop: summary.totalCop,
-    promoCode: summary.promoCode,
-    discountCop: summary.discountCop,
   };
 }
 
@@ -90,11 +86,6 @@ function buildWhatsAppMessage(o: WhatsAppOrderSummary): string {
     lines.push(`- ${l.name} x ${l.qty} = ${formatCop(l.lineTotalCop)}`);
   }
   lines.push("");
-  if (o.promoCode && o.discountCop && o.discountCop > 0) {
-    lines.push(`Subtotal: ${formatCop(o.subtotalCop)}`);
-    lines.push(`Codigo: ${o.promoCode}`);
-    lines.push(`Descuento: -${formatCop(o.discountCop)}`);
-  }
   lines.push(`Total: ${formatCop(o.totalCop)}`);
   if (o.notes && o.notes.trim()) {
     lines.push("");

@@ -23,8 +23,8 @@ const config = {
     // recur across the codebase, so silencing them per-file would be noise.
     rules: [
       // Initializing editable form state from props is intentional throughout:
-      // edit rows are remounted per id, and the settings/promo forms are
-      // deliberate snapshots the admin then edits. Not a derived-state bug.
+      // edit rows are remounted per id, and settings forms are deliberate
+      // snapshots the admin then edits. Not a derived-state bug.
       "react-doctor/no-derived-useState",
       // Multiple related useState calls are intentional and readable; React
       // batches updates within handlers, so this is a style preference.
@@ -38,8 +38,8 @@ const config = {
     ],
     overrides: [
       // By design for a public storefront + single-admin model: anon may read
-      // only active catalog rows / public site assets; promos_admin_all grants
-      // authenticated (admin-only) full access. Documented in the migrations.
+      // only active catalog rows / public site assets. Admin write policies are
+      // documented in the migrations.
       {
         files: ["supabase/migrations/**"],
         rules: ["react-doctor/supabase-rls-policy-risk"],
@@ -86,15 +86,10 @@ const config = {
         rules: ["react-doctor/no-large-animated-blur"],
       },
       // Inputs are labeled via the in-file Field wrapper's htmlFor/id (the rule
-      // cannot follow the cross-component association); the prevSubtotal state
-      // is read during render (intentional render-time comparison to clear
-      // stale promos).
+      // cannot follow the cross-component association).
       {
         files: ["**/CheckoutForm.tsx"],
-        rules: [
-          "react-doctor/control-has-associated-label",
-          "react-doctor/rerender-state-only-in-handlers",
-        ],
+        rules: ["react-doctor/control-has-associated-label"],
       },
       // slug-touched flags are intentionally useState to match surrounding form
       // state; a ref would be a negligible micro-optimization.

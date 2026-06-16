@@ -16,33 +16,15 @@ export const metadata = {
 
 export default async function OrderConfirmationPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ code?: string; discount?: string }>;
 }) {
-  const [{ id }, { code, discount }] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+  const { id } = await params;
 
   // Reference shown on the "Número de pedido" card: short code when available,
   // otherwise the id from the route.
   let orderRef = id;
   let serverSummary: WhatsAppOrderSummary | null = null;
-
-  // Demo-mode-only discount banner fallback from the checkout redirect's query
-  // params. In DB mode these are never trusted — the customer banner is built
-  // client-side from the server-trusted summary in sessionStorage.
-  let demoPromoCode: string | null = null;
-  let demoDiscountCop = 0;
-  if (!hasSupabaseEnv()) {
-    demoPromoCode = code?.trim().toUpperCase() || null;
-    const parsedDiscount = Number(discount);
-    if (Number.isFinite(parsedDiscount) && parsedDiscount > 0) {
-      demoDiscountCop = Math.floor(parsedDiscount);
-    }
-  }
 
   if (hasSupabaseEnv()) {
     // Optional authenticated read path (e.g. an admin opening the confirmation
@@ -79,8 +61,6 @@ export default async function OrderConfirmationPage({
               0,
             ),
             totalCop: order.totalCop,
-            promoCode: order.promoCode,
-            discountCop: order.discountCop,
           };
         }
       }
@@ -119,8 +99,6 @@ export default async function OrderConfirmationPage({
           <WhatsAppHandoff
             orderId={id}
             serverSummary={serverSummary}
-            demoPromoCode={demoPromoCode}
-            demoDiscountCop={demoDiscountCop}
           />
 
           <Link

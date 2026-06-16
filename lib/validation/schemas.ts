@@ -57,13 +57,6 @@ export const orderSchema = z
     address: z.string().trim().optional(),
     deliveryType: z.enum(["delivery", "pickup"]),
     notes: z.string().trim().optional(),
-    promoCode: z
-      .string()
-      .trim()
-      .toUpperCase()
-      .max(40)
-      .optional()
-      .transform((v) => (v && v.length > 0 ? v : undefined)),
     items: z.array(orderItemSchema).min(1, "Tu carrito está vacío."),
   })
   .refine(
@@ -106,24 +99,6 @@ export const categorySchema = z.object({
 });
 
 export type CategorySchema = z.infer<typeof categorySchema>;
-
-export const promoSchema = z
-  .object({
-    code: z.string().trim().toUpperCase().min(2, "Ingresa un código.").max(40),
-    type: z.enum(["percent", "fixed"]),
-    value: z.number().int().positive("El valor debe ser mayor a cero."),
-    minSubtotalCop: z.number().int().nonnegative().nullable(),
-    active: z.boolean(),
-    startsAt: z.string().trim().min(1).nullable(), // ISO or null
-    endsAt: z.string().trim().min(1).nullable(),
-    maxRedemptions: z.number().int().positive().nullable(),
-  })
-  .refine((d) => d.type !== "percent" || d.value <= 100, {
-    message: "El porcentaje no puede superar 100.",
-    path: ["value"],
-  });
-
-export type PromoSchema = z.infer<typeof promoSchema>;
 
 // Editable image slots, validated for the site_assets table. The url reuses the
 // shared image guard (IMG-1/IMG-2); href is an optional outbound link.

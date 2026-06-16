@@ -30,17 +30,17 @@ to demo the whole site.
    - `supabase/migrations/0002_rls.sql` — row-level security + the first `create_order` RPC.
    - `supabase/migrations/0003_inventory.sql` — `sold_out` + optional `stock_qty`, re-issues
      `create_order` with availability checks.
-   - `supabase/migrations/0004_promos.sql` — `promos` table + `validate_promo`, adds
-     `promo_code`/`discount_total` to orders, re-issues `create_order` (inventory + promo).
+   - `supabase/migrations/0004_promos.sql` — legacy promo setup, kept for historical migration order.
    - `supabase/migrations/0005_order_short_code.sql` — `orders.short_code`; re-issues
-     `create_order` as the **final** version, which returns the `POL-` short code (text, not
-     uuid) and enforces inventory, promo, and the Colombian-phone checks.
+     `create_order` to return the `POL-` short code (text, not uuid).
    - `supabase/migrations/0006_review_fixes.sql` — order-integrity + inventory fixes.
    - `supabase/migrations/0007_site_config.sql` — `site_assets` + `shop_settings` tables, RLS,
      and the public Storage buckets for owner-editable images and shop settings.
    - `supabase/migrations/0008_inventory_reactivation_fix.sql` — symmetric stock on cancel/reactivate.
-   - `supabase/migrations/0009_admin_rls.sql` — admin-role RLS hardening. **Apply LAST, and only
-     after every admin has a role claim** (see step 4) or you will lock admins out of the DB.
+   - `supabase/migrations/0009_admin_rls.sql` — admin-role RLS hardening. Apply only
+     after every admin has a role claim (see step 4) or you will lock admins out of the DB.
+   - `supabase/migrations/0010_remove_promos.sql` — removes the legacy promo table/RPC/order
+     columns and re-issues `create_order` without promo handling. **Apply LAST.**
    - Then run the one-off image backfill from `LAUNCH_RUNBOOK.md` so DB-mode products show the
      real photos instead of the placeholder.
 3. **Create the super admin** and disable public sign-ups:
@@ -54,9 +54,9 @@ to demo the whole site.
    1. `node --env-file=.env.local scripts/set-admin-role.mjs <super-email> super_admin`
    2. For each pre-existing admin: `node --env-file=.env.local scripts/set-admin-role.mjs <email> admin`
    3. Verify everyone can still log in and use `/admin`.
-   4. Apply `supabase/migrations/0009_admin_rls.sql`.
+   4. Apply `supabase/migrations/0009_admin_rls.sql`, then `supabase/migrations/0010_remove_promos.sql`.
    After that, the super admin creates new admins in-app at `/admin/admins` (email + password) —
-   no env edits, no redeploy. Regular admins manage the catalog, orders, promos, settings, and
+   no env edits, no redeploy. Regular admins manage the catalog, orders, settings, and
    multimedia, but not other admins.
 5. Restart `pnpm dev`. The menu loads from the database, orders persist, and `/admin` lets you
    manage products/prices/categories, settings/multimedia, order status, and (super admin only)

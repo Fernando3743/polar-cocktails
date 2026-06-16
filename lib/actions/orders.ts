@@ -5,14 +5,9 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { requireAdmin } from "@/lib/auth";
-import { SEED_PRODUCTS, validateSeedPromo } from "@/lib/seed-data";
+import { SEED_PRODUCTS } from "@/lib/seed-data";
 import { orderSchema, orderStatusSchema } from "@/lib/validation/schemas";
-import type {
-  OrderInput,
-  OrderStatus,
-  PromoType,
-  PromoValidation,
-} from "@/lib/types";
+import type { OrderInput, OrderStatus } from "@/lib/types";
 
 /**
  * Server-trusted order summary returned by createOrder. Every amount is
@@ -30,9 +25,7 @@ export type OrderSummary = {
     lineTotalCop: number;
   }[];
   subtotalCop: number;
-  discountCop: number;
   totalCop: number;
-  promoCode: string | null;
 };
 
 export type CreateOrderResult =
@@ -51,67 +44,8 @@ type CreateOrderRpcResult = {
     line_total_cop: number;
   }[];
   subtotal_cop: number;
-  discount_total: number;
-  promo_code: string | null;
   total_cop: number;
 };
-
-/**
- * Validates a promo code against a subtotal (in COP). Used by the checkout
- * "Aplicar" button. In demo mode this checks SEED_PROMOS; with a database it
- * calls the anon-safe `validate_promo` RPC (no direct table read needed).
- * Never trusts a client-sent discount — only the code is provided.
- */
-export async function validatePromo(
-  code: string,
-  subtotalCop: number,
-): Promise<PromoValidation> {
-  const normalized = code.trim().toUpperCase();
-  if (!normalized) {
-    return {
-      valid: false,
-      type: null,
-      value: null,
-      discountCop: 0,
-      reason: "Ingresa un código.",
-    };
-  }
-
-  // Demo mode: validate against the seed list.
-  if (!hasSupabaseEnv()) {
-    return validateSeedPromo(normalized, subtotalCop);
-  }
-
-  // DB mode: anon-safe RPC (no table read access needed).
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("validate_promo", {
-    p_code: normalized,
-    p_subtotal: subtotalCop,
-  });
-  if (error || !data) {
-    return {
-      valid: false,
-      type: null,
-      value: null,
-      discountCop: 0,
-      reason: "Código no válido.",
-    };
-  }
-  const row = data as {
-    valid: boolean;
-    type: PromoType | null;
-    value: number | null;
-    discount: number;
-    reason: string | null;
-  };
-  return {
-    valid: row.valid,
-    type: row.type,
-    value: row.value,
-    discountCop: row.discount ?? 0,
-    reason: row.reason, // RPC returns Spanish reasons
-  };
-}
 
 /**
  * Creates an order. The price of every line is re-fetched server-side
@@ -166,17 +100,6 @@ export async function createOrder(
     if (subtotal <= 0) {
       return { ok: false, error: "Tu carrito está vacío." };
     }
-    // Re-validate the promo server-side; never trust a client-sent discount.
-    let discountCop = 0;
-    let promoCode: string | null = null;
-    if (data.promoCode) {
-      const v = validateSeedPromo(data.promoCode, subtotal);
-      if (!v.valid) {
-        return { ok: false, error: v.reason ?? "Código no válido." };
-      }
-      discountCop = v.discountCop;
-      promoCode = data.promoCode;
-    }
     // Nothing is persisted in demo mode; still return a generated id and the
     // same server-trusted summary shape the DB branch produces.
     return {
@@ -186,9 +109,7 @@ export async function createOrder(
         shortCode: null, // demo has no short code
         items: summaryItems,
         subtotalCop: subtotal,
-        discountCop,
-        totalCop: Math.max(0, subtotal - discountCop),
-        promoCode,
+        totalCop: subtotal,
       },
     };
   }
@@ -202,7 +123,6 @@ export async function createOrder(
       address: data.address ?? null,
       deliveryType: data.deliveryType,
       notes: data.notes ?? null,
-      promoCode: data.promoCode ?? null,
       items: data.items.map((item) => ({
         productId: item.productId,
         qty: item.qty,
@@ -212,9 +132,6 @@ export async function createOrder(
 
   if (error || !rpcResult) {
     // The RPC raises typed tokens; surface useful Spanish copy for each.
-    // Note (locked decision #4): create_order no longer raises for promo
-    // problems — a bad code is soft-dropped (no discount) and the order is
-    // still created — so `invalid_promo` no longer reaches this path.
     const code = error?.message ?? "";
     if (code.includes("product_sold_out")) {
       return {
@@ -244,9 +161,7 @@ export async function createOrder(
       lineTotalCop: it.line_total_cop,
     })),
     subtotalCop: r.subtotal_cop,
-    discountCop: r.discount_total,
     totalCop: r.total_cop,
-    promoCode: r.promo_code,
   };
 
   // The route param is the human-friendly short code (what the confirmation

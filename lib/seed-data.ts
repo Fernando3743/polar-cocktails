@@ -4,12 +4,9 @@ import {
   SOCIAL_LINKS,
   WHATSAPP_NUMBER,
 } from "@/lib/config";
-import { formatCop } from "@/lib/format";
 import type {
   Category,
   Product,
-  PromoType,
-  PromoValidation,
   ShopSettings,
   SiteAsset,
 } from "@/lib/types";
@@ -192,59 +189,3 @@ export const SEED_SHOP_SETTINGS: ShopSettings = {
   },
   openingHours: [],
 };
-
-interface SeedPromo {
-  code: string;
-  type: PromoType;
-  value: number;
-  minSubtotalCop: number | null;
-  active: boolean;
-}
-
-export const SEED_PROMOS: SeedPromo[] = [
-  { code: "POLAR10", type: "percent", value: 10, minSubtotalCop: null, active: true },
-  { code: "FRIO5000", type: "fixed", value: 5000, minSubtotalCop: 30000, active: true },
-];
-
-// ACT-5: this demo-mode validator intentionally checks only code match,
-// active flag, and minSubtotalCop. SeedPromo has no startsAt/endsAt or
-// maxRedemptions, so there is NO time-window or redemption-cap enforcement
-// here. The DB path (validate_promo / create_order RPC) is the source of truth
-// for those rules; demo promos are unrestricted by design.
-export function validateSeedPromo(
-  code: string,
-  subtotalCop: number,
-): PromoValidation {
-  const normalized = code.trim().toUpperCase();
-  const promo = SEED_PROMOS.find((p) => p.code === normalized);
-  if (!promo || !promo.active) {
-    return {
-      valid: false,
-      type: null,
-      value: null,
-      discountCop: 0,
-      reason: "Código no válido.",
-    };
-  }
-  if (promo.minSubtotalCop !== null && subtotalCop < promo.minSubtotalCop) {
-    return {
-      valid: false,
-      type: null,
-      value: null,
-      discountCop: 0,
-      reason: `Aplica desde ${formatCop(promo.minSubtotalCop)}.`,
-    };
-  }
-  const raw =
-    promo.type === "percent"
-      ? Math.floor((subtotalCop * promo.value) / 100)
-      : promo.value;
-  const discountCop = Math.min(Math.max(raw, 0), subtotalCop); // clamp 0..subtotal
-  return {
-    valid: true,
-    type: promo.type,
-    value: promo.value,
-    discountCop,
-    reason: null,
-  };
-}
