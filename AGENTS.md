@@ -96,10 +96,10 @@ DB mode, when Supabase env vars exist:
 Keep both modes working. The homepage and menu must continue to build and render
 from seed data with no Supabase configuration.
 
-See `SETUP.md` for Supabase setup. Migrations live in:
-
-- `supabase/migrations/0001_init.sql`
-- `supabase/migrations/0002_rls.sql`
+See `SETUP.md` for Supabase setup. Migrations live in
+`supabase/migrations/0001_init.sql` through `0012_audit_hardening.sql` and must
+be applied in order (they are idempotent). Apply `0009_admin_rls.sql` only after
+every admin carries an `app_metadata.role` claim, or you lock admins out.
 
 ## Architecture Map
 
@@ -138,9 +138,13 @@ Supabase clients:
 
 Auth rules:
 
-- There is a single admin-user model.
 - Use `getUser()` for authorization checks because it validates the JWT.
 - Do not use `getSession()` as an authorization boundary.
+- A user is an admin when they are the `SUPER_ADMIN_EMAIL` user OR carry
+  `app_metadata.role` in `{admin, super_admin}` (see `lib/auth.ts`). The
+  service-role client (`lib/supabase/admin.ts`) is used only behind
+  `requireSuperAdmin()`.
+- The legacy `ADMIN_EMAIL` env var is no longer read by the app; do not use it.
 
 Order integrity rules:
 

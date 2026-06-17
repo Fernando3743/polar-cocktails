@@ -5,8 +5,11 @@
 //
 // Reads NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY from the env file.
 // The user is created already email-confirmed so it can sign in immediately.
-// Afterwards, add the email to ADMIN_EMAIL in .env.local (comma-separated for
-// multiple admins) so it passes requireAdmin(), then restart the server.
+// This only creates the account; it does NOT grant admin access. Make it an
+// admin by giving it a role claim (app_metadata.role) with
+//   node scripts/set-admin-role.mjs <email> admin
+// or, for the owner/super admin, set SUPER_ADMIN_EMAIL to this email. (The
+// legacy ADMIN_EMAIL env var is no longer read by the app.)
 import { createClient } from "@supabase/supabase-js";
 
 const [, , email, password] = process.argv;

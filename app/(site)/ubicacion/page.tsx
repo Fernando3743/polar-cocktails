@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import { Snowfall } from "@/components/layout/Snowfall";
 import { ArrowRightIcon, MapPinIcon, PhoneIcon } from "@/components/icons";
 import { Container } from "@/components/ui/Container";
 import { getShopSettings } from "@/lib/queries/site";
 import { SITE_NAME, whatsappUrl } from "@/lib/config";
+import { pageMetadata } from "@/lib/seo";
 
 const LOCATION_DESCRIPTION =
   "Encuentra Polar en Tuluá y llega por Google Maps por tus cócteles granizados favoritos.";
@@ -12,35 +12,12 @@ const LOCATION_DESCRIPTION =
 const VISIT_MESSAGE =
   "¡Hola Polar! Quiero confirmar la ubicación y el horario para visitarlos.";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Ubicación de Polar en Tuluá",
+  socialTitle: "Ubicación — Polar",
   description: LOCATION_DESCRIPTION,
-  alternates: { canonical: "/ubicacion" },
-  openGraph: {
-    title: "Ubicación — Polar",
-    description: LOCATION_DESCRIPTION,
-    url: "/ubicacion",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Ubicación — Polar",
-    description: LOCATION_DESCRIPTION,
-    images: [
-      {
-        url: "/twitter-image.png",
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-};
+  path: "/ubicacion",
+});
 
 export default async function UbicacionPage() {
   const settings = await getShopSettings();

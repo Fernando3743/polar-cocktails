@@ -7,22 +7,75 @@ export function siteUrl(): string {
   if (prod) return `https://${prod}`;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
 
-  // No origin resolved. We must distinguish a real (misconfigured) Vercel deploy
-  // from a plain local/seed build. Vercel sets VERCEL="1" inside its build and
-  // runtime; it also always sets VERCEL_URL, so reaching here on Vercel means the
-  // env is broken — fail loudly instead of poisoning canonical/sitemap/JSON-LD URLs
-  // with localhost. The zero-env `pnpm build` (NODE_ENV=production, no VERCEL) must
-  // NOT throw, since it is the demo/seed correctness gate, so only warn there.
-  if (process.env.VERCEL === "1") {
-    throw new Error(
-      "[siteUrl] No absolute origin could be resolved on Vercel. Set NEXT_PUBLIC_SITE_URL " +
-        "(or rely on VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL) before deploying.",
-    );
-  }
-  console.warn(
-    "[siteUrl] No NEXT_PUBLIC_SITE_URL set; falling back to http://localhost:3000 — set it for production deploys",
-  );
+  // No env-provided origin. In production, default to the known stable domain so
+  // canonical/OG/sitemap/JSON-LD URLs are correct rather than localhost (this also
+  // covers the zero-env static build: NODE_ENV=production with no VERCEL, the
+  // demo/seed correctness gate). NEXT_PUBLIC_SITE_URL still overrides for any
+  // other deploy target.
+  if (process.env.NODE_ENV === "production") return "https://polarcocktails.com";
   return "http://localhost:3000";
+}
+
+// Shared alt text for the file-convention social images, reused by every page's
+// OG/Twitter image entry.
+const SOCIAL_IMAGE_ALT = "Polar — Cócteles Granizados en Tuluá";
+
+interface PageMetadataInput {
+  /** The page <title> (template-wrapped by the root layout). */
+  title: string;
+  /** Description used for <meta name="description"> and the social cards. */
+  description: string;
+  /** Route path for the canonical + og:url, e.g. "/menu". */
+  path: string;
+  /**
+   * OG/Twitter card title (typically "<Label> — Polar"). Falls back to `title`
+   * when omitted.
+   */
+  socialTitle?: string;
+}
+
+/**
+ * Builds the canonical + OpenGraph + Twitter metadata block shared by the
+ * static content pages (menu, contacto, ubicacion, nosotros). A per-route
+ * `openGraph`/`twitter` object REPLACES the root's rather than deep-merging, so
+ * the shared file-convention images are re-attached here explicitly.
+ */
+export function pageMetadata({
+  title,
+  description,
+  path,
+  socialTitle,
+}: PageMetadataInput) {
+  const cardTitle = socialTitle ?? title;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      title: cardTitle,
+      description,
+      url: path,
+      images: [
+        {
+          url: "/opengraph-image.png",
+          width: 1200,
+          height: 630,
+          alt: SOCIAL_IMAGE_ALT,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title: cardTitle,
+      description,
+      images: [
+        {
+          url: "/twitter-image.png",
+          alt: SOCIAL_IMAGE_ALT,
+        },
+      ],
+    },
+  };
 }
 
 export const SITE_DESCRIPTION =

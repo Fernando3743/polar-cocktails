@@ -18,9 +18,6 @@ export async function upsertSiteAsset(
   slot: AssetSlot,
   data: { url: string; href?: string | null },
 ): Promise<SiteActionResult> {
-  const auth = await requireAdmin();
-  if (!auth.ok) return { ok: false, error: auth.error };
-
   if (!hasSupabaseEnv()) {
     return { ok: false, error: "Configura Supabase para guardar cambios." };
   }
@@ -37,6 +34,9 @@ export async function upsertSiteAsset(
       error: parsed.error.issues[0]?.message ?? "Datos inválidos.",
     };
   }
+
+  const auth = await requireAdmin();
+  if (!auth.ok) return { ok: false, error: auth.error };
 
   const supabase = await createClient();
   const { error } = await supabase.from("site_assets").upsert(
@@ -71,9 +71,6 @@ export async function upsertSiteAsset(
 export async function updateShopSettings(
   input: ShopSettings,
 ): Promise<SiteActionResult> {
-  const auth = await requireAdmin();
-  if (!auth.ok) return { ok: false, error: auth.error };
-
   if (!hasSupabaseEnv()) {
     return { ok: false, error: "Configura Supabase para guardar cambios." };
   }
@@ -85,6 +82,9 @@ export async function updateShopSettings(
       error: parsed.error.issues[0]?.message ?? "Datos inválidos.",
     };
   }
+
+  const auth = await requireAdmin();
+  if (!auth.ok) return { ok: false, error: auth.error };
 
   const supabase = await createClient();
   const { error } = await supabase.from("shop_settings").upsert(

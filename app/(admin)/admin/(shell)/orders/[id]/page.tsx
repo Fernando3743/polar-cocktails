@@ -6,6 +6,7 @@ import { formatCop } from "@/lib/format";
 import { whatsappUrl } from "@/lib/config";
 import { WhatsAppIcon, MapPinIcon } from "@/components/icons";
 import { deliveryLabel } from "../../../_lib/status";
+import { formatDate } from "../../../_lib/dates";
 import { StatusBadge } from "../../../_components/StatusBadge";
 import { OrderStatusControl } from "../../../_components/OrderStatusControl";
 
@@ -16,12 +17,6 @@ const DATE_FORMAT = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "long",
   timeStyle: "short",
 });
-
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return DATE_FORMAT.format(date);
-}
 
 export default async function AdminOrderDetailPage({
   params,
@@ -60,7 +55,7 @@ export default async function AdminOrderDetailPage({
           <StatusBadge status={order.status} />
         </div>
         <p className="text-sm text-polar-dim">
-          Pedido #{orderRef} · {formatDate(order.createdAt)}
+          Pedido #{orderRef} · {formatDate(order.createdAt, DATE_FORMAT)}
         </p>
       </div>
 

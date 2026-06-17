@@ -1,5 +1,6 @@
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getSiteAssets } from "@/lib/queries/site";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { BrandingManager } from "../../_components/BrandingManager";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +21,9 @@ export default async function AdminBrandingPage() {
       </header>
 
       {!hasSupabaseEnv() && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Configura Supabase para subir imágenes.
-        </p>
+        </DemoModeNotice>
       )}
 
       <BrandingManager assets={assets} hasEnv={hasSupabaseEnv()} />

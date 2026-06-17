@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Snowfall } from "@/components/layout/Snowfall";
@@ -9,6 +8,7 @@ import {
   MapPinIcon,
   SnowflakeIcon,
 } from "@/components/icons";
+import { pageMetadata } from "@/lib/seo";
 
 const NOSOTROS_DESCRIPTION =
   "Conoce Polar, el negocio local de Tuluá que prepara cócteles granizados frescos, coloridos y listos para compartir.";
@@ -40,35 +40,12 @@ const STEPS = [
   "Recibe tus cócteles granizados listos para disfrutar.",
 ];
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Nosotros",
+  socialTitle: "Nosotros — Polar",
   description: NOSOTROS_DESCRIPTION,
-  alternates: { canonical: "/nosotros" },
-  openGraph: {
-    title: "Nosotros — Polar",
-    description: NOSOTROS_DESCRIPTION,
-    url: "/nosotros",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Nosotros — Polar",
-    description: NOSOTROS_DESCRIPTION,
-    images: [
-      {
-        url: "/twitter-image.png",
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-};
+  path: "/nosotros",
+});
 
 export default function NosotrosPage() {
   return (

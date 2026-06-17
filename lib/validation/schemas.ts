@@ -1,10 +1,27 @@
 import { z } from "zod";
 
 /**
+ * The exact Supabase Storage hostname to pin image URLs to, derived from
+ * NEXT_PUBLIC_SUPABASE_URL when set. In demo/zero-env (unset) this is null and
+ * the guard falls back to broad "*.supabase.co" acceptance so the seed/build
+ * path keeps working without any Supabase configuration.
+ */
+function pinnedImageHost(): string | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Image/asset URL guard (IMG-1/IMG-2). Accepts ONLY:
  *  - "" (empty, i.e. no image)
  *  - a site-relative path starting with "/"
- *  - an https:// URL whose host ends in ".supabase.co"
+ *  - an https:// URL whose host is the pinned Supabase host (when
+ *    NEXT_PUBLIC_SUPABASE_URL is set) or any "*.supabase.co" host (demo/zero-env)
  * Rejects http:, data:, javascript:, ftp:, and any other host. Reused by both
  * productSchema.imageUrl and the site asset url so every image path agrees.
  */
@@ -21,6 +38,8 @@ function isAllowedImageUrl(value: string): boolean {
   }
   if (parsed.protocol !== "https:") return false;
   const host = parsed.hostname.toLowerCase();
+  const pinned = pinnedImageHost();
+  if (pinned) return host === pinned;
   return host === "supabase.co" || host.endsWith(".supabase.co");
 }
 
@@ -31,12 +50,20 @@ const imageUrlSchema = z
 
 const orderItemSchema = z.object({
   productId: z.string().min(1, "Producto inválido."),
-  qty: z.number().int().positive("La cantidad debe ser mayor a cero."),
+  qty: z
+    .number()
+    .int()
+    .min(1, "La cantidad debe ser mayor a cero.")
+    .max(99, "Cantidad máxima 99 por producto."),
 });
 
 export const orderSchema = z
   .object({
-    customerName: z.string().trim().min(2, "Ingresa tu nombre."),
+    customerName: z
+      .string()
+      .trim()
+      .min(2, "Ingresa tu nombre.")
+      .max(80, "El nombre es demasiado largo."),
     customerPhone: z
       .string()
       .trim()
@@ -54,10 +81,21 @@ export const orderSchema = z
             "Ingresa un celular colombiano válido (10 dígitos).",
           ),
       ),
-    address: z.string().trim().optional(),
+    address: z
+      .string()
+      .trim()
+      .max(200, "La dirección es demasiado larga.")
+      .optional(),
     deliveryType: z.enum(["delivery", "pickup"]),
-    notes: z.string().trim().optional(),
-    items: z.array(orderItemSchema).min(1, "Tu carrito está vacío."),
+    notes: z
+      .string()
+      .trim()
+      .max(500, "Las notas son demasiado largas.")
+      .optional(),
+    items: z
+      .array(orderItemSchema)
+      .min(1, "Tu carrito está vacío.")
+      .max(50, "Demasiados productos en el pedido."),
   })
   .refine(
     (data) =>
@@ -76,17 +114,29 @@ const hexColor = z
   .regex(/^#[0-9a-fA-F]{6}$/, "Color hexadecimal inválido (#RRGGBB).");
 
 export const productSchema = z.object({
-  name: z.string().trim().min(2, "Ingresa un nombre."),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Ingresa un nombre.")
+    .max(120, "El nombre es demasiado largo."),
   slug: z.string().trim().min(1, "Ingresa un slug."),
-  description: z.string().trim().min(1, "Ingresa una descripción."),
-  priceCop: z.number().int().nonnegative("El precio no puede ser negativo."),
+  description: z
+    .string()
+    .trim()
+    .min(1, "Ingresa una descripción.")
+    .max(2000, "La descripción es demasiado larga."),
+  priceCop: z
+    .number()
+    .int()
+    .nonnegative("El precio no puede ser negativo.")
+    .max(100000000),
   accentColor: hexColor,
   imageUrl: imageUrlSchema.nullable(),
   categorySlug: z.string().trim().min(1, "Selecciona una categoría."),
-  sortOrder: z.number().int().nonnegative(),
+  sortOrder: z.number().int().nonnegative().max(1000000),
   isActive: z.boolean(),
   soldOut: z.boolean(),
-  stockQty: z.number().int().nonnegative().nullable(), // null = untracked
+  stockQty: z.number().int().nonnegative().max(1000000).nullable(), // null = untracked
 });
 
 export type ProductSchema = z.infer<typeof productSchema>;
@@ -94,7 +144,7 @@ export type ProductSchema = z.infer<typeof productSchema>;
 export const categorySchema = z.object({
   name: z.string().trim().min(2, "Ingresa un nombre."),
   slug: z.string().trim().min(1, "Ingresa un slug."),
-  sortOrder: z.number().int().nonnegative(),
+  sortOrder: z.number().int().nonnegative().max(1000000),
   isActive: z.boolean(),
 });
 
@@ -124,14 +174,14 @@ export const siteAssetSchema = z.object({
     .nullable()
     .or(z.literal(""))
     .transform((v) => (v ? v : null)),
-  sortOrder: z.number().int().nonnegative(),
+  sortOrder: z.number().int().nonnegative().max(1000000),
 });
 
 export type SiteAssetSchema = z.infer<typeof siteAssetSchema>;
 
 const openingHourSchema = z.object({
-  label: z.string().trim().min(1, "Ingresa una etiqueta."),
-  value: z.string().trim().min(1, "Ingresa un horario."),
+  label: z.string().trim().min(1, "Ingresa una etiqueta.").max(40),
+  value: z.string().trim().min(1, "Ingresa un horario.").max(80),
 });
 
 export const shopSettingsSchema = z.object({
@@ -147,7 +197,7 @@ export const shopSettingsSchema = z.object({
           "Ingresa el WhatsApp con código de país (solo dígitos).",
         ),
     ),
-  addressLines: z.array(z.string().trim().min(1)).max(6),
+  addressLines: z.array(z.string().trim().min(1).max(120)).max(6),
   mapsUrl: z
     .string()
     .trim()

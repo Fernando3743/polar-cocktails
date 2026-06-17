@@ -1,5 +1,6 @@
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getShopSettings } from "@/lib/queries/site";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { SettingsManager } from "../../_components/SettingsManager";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +20,9 @@ export default async function AdminSettingsPage() {
       </header>
 
       {!hasSupabaseEnv() && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Configura Supabase para guardar cambios.
-        </p>
+        </DemoModeNotice>
       )}
 
       <SettingsManager settings={settings} hasEnv={hasSupabaseEnv()} />

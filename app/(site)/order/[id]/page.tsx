@@ -4,6 +4,7 @@ import { SnowflakeIcon } from "@/components/icons";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderById, getOrderByShortCode } from "@/lib/queries/orders";
+import { getShopSettings } from "@/lib/queries/site";
 import { WhatsAppHandoff } from "@/components/order/WhatsAppHandoff";
 import type { WhatsAppOrderSummary } from "@/lib/whatsapp";
 
@@ -20,6 +21,11 @@ export default async function OrderConfirmationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  // Shop WhatsApp number for the handoff link. Falls back to SEED_SHOP_SETTINGS
+  // in demo mode / before migration 0007, so this page stays dynamic but never
+  // requires a DB (consistent with Navbar/InfoRow/MobileBottomNav).
+  const settings = await getShopSettings();
 
   // Reference shown on the "Número de pedido" card: short code when available,
   // otherwise the id from the route.
@@ -99,6 +105,7 @@ export default async function OrderConfirmationPage({
           <WhatsAppHandoff
             orderId={id}
             serverSummary={serverSummary}
+            whatsappNumber={settings.whatsappNumber}
           />
 
           <Link

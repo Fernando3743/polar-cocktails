@@ -43,6 +43,7 @@ export function SettingsManager({
   const [settingsOk, setSettingsOk] = useState(false);
 
   // Password change form state.
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -113,6 +114,10 @@ export function SettingsManager({
     setPasswordError(null);
     setPasswordOk(false);
 
+    if (currentPassword.length === 0) {
+      setPasswordError("Ingresa tu contraseña actual.");
+      return;
+    }
     if (newPassword.length < 8) {
       setPasswordError("La contraseña debe tener al menos 8 caracteres.");
       return;
@@ -123,12 +128,13 @@ export function SettingsManager({
     }
 
     startTransition(async () => {
-      const result = await changePassword(newPassword);
+      const result = await changePassword(currentPassword, newPassword);
       if (!result.ok) {
         setPasswordError(result.error ?? "Ocurrió un error.");
         return;
       }
       setPasswordOk(true);
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     });
@@ -345,6 +351,19 @@ export function SettingsManager({
             Contraseña actualizada.
           </p>
         )}
+
+        <label className="flex flex-col gap-1.5 text-xs text-polar-dim">
+          Contraseña actual
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            autoComplete="current-password"
+            placeholder="Tu contraseña actual"
+            className={inputClass}
+            disabled={!hasEnv}
+          />
+        </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-xs text-polar-dim">

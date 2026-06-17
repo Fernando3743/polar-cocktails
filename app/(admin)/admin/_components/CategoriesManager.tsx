@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { clsx } from "clsx";
+import { useState } from "react";
 import {
   createCategory,
   deleteCategory,
@@ -10,6 +8,8 @@ import {
 } from "@/lib/actions/categories";
 import { categorySchema, type CategorySchema } from "@/lib/validation/schemas";
 import { slugify } from "@/lib/format";
+import { useActionRunner } from "@/lib/hooks/useActionRunner";
+import { Alert } from "@/components/ui/Alert";
 
 interface CategoryItem {
   id: string;
@@ -26,29 +26,14 @@ export function CategoriesManager({
   initial: CategoryItem[];
   readOnly: boolean;
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const { pending, error, setError, run } = useActionRunner();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   // New-category form state.
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [newSlugTouched, setNewSlugTouched] = useState(false);
   const [newSort, setNewSort] = useState("");
-
-  function run(action: () => Promise<{ ok: boolean; error?: string }>, onOk?: () => void) {
-    setError(null);
-    startTransition(async () => {
-      const result = await action();
-      if (!result.ok) {
-        setError(result.error ?? "Ocurrió un error.");
-        return;
-      }
-      onOk?.();
-      router.refresh();
-    });
-  }
 
   function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,24 +48,19 @@ export function CategoriesManager({
       setError(parsed.error.issues[0]?.message ?? "Datos inválidos.");
       return;
     }
-    run(() => createCategory(parsed.data), () => {
-      setNewName("");
-      setNewSlug("");
-      setNewSlugTouched(false);
-      setNewSort("");
+    run(() => createCategory(parsed.data), {
+      onOk: () => {
+        setNewName("");
+        setNewSlug("");
+        setNewSlugTouched(false);
+        setNewSort("");
+      },
     });
   }
 
   return (
     <div className="flex flex-col gap-6">
-      {error && (
-        <p
-          role="alert"
-          className="rounded-xl border border-[rgba(226,69,122,0.4)] bg-[rgba(226,69,122,0.08)] px-4 py-3 text-sm text-[#f3a9c1]"
-        >
-          {error}
-        </p>
-      )}
+      {error && <Alert tone="error">{error}</Alert>}
 
       <div className="glass-card overflow-hidden">
         {initial.length === 0 ? (
@@ -97,9 +77,9 @@ export function CategoriesManager({
                   pending={pending}
                   onCancel={() => setEditingId(null)}
                   onSave={(data) =>
-                    run(() => updateCategory(category.id, data), () =>
-                      setEditingId(null),
-                    )
+                    run(() => updateCategory(category.id, data), {
+                      onOk: () => setEditingId(null),
+                    })
                   }
                 />
               ) : (
@@ -180,7 +160,7 @@ export function CategoriesManager({
               }}
               placeholder="Nombre"
               aria-label="Nombre de la categoría"
-              className={inputClass}
+              className="input-polar"
             />
             <input
               type="text"
@@ -191,7 +171,7 @@ export function CategoriesManager({
               }}
               placeholder="slug"
               aria-label="Slug de la categoría"
-              className={inputClass}
+              className="input-polar"
             />
             <input
               type="number"
@@ -200,7 +180,7 @@ export function CategoriesManager({
               onChange={(e) => setNewSort(e.target.value)}
               placeholder="Orden"
               aria-label="Orden de la categoría"
-              className={inputClass}
+              className="input-polar"
             />
           </div>
           <div>
@@ -253,7 +233,7 @@ function EditRow({
           value={name}
           onChange={(e) => setName(e.target.value)}
           aria-label="Nombre de la categoría"
-          className={inputClass}
+          className="input-polar"
           placeholder="Nombre"
         />
         <input
@@ -261,7 +241,7 @@ function EditRow({
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           aria-label="Slug de la categoría"
-          className={inputClass}
+          className="input-polar"
           placeholder="slug"
         />
         <input
@@ -270,7 +250,7 @@ function EditRow({
           value={sort}
           onChange={(e) => setSort(e.target.value)}
           aria-label="Orden de la categoría"
-          className={inputClass}
+          className="input-polar"
           placeholder="Orden"
         />
       </div>
@@ -305,8 +285,3 @@ function EditRow({
     </li>
   );
 }
-
-const inputClass = clsx(
-  "h-11 w-full rounded-xl border border-[rgba(167,73,197,0.2)] bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text placeholder:text-polar-dim outline-none transition-colors",
-  "focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]",
-);

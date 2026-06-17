@@ -17,8 +17,18 @@ export function OrderStatusControl({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [value, setValue] = useState<OrderStatus>(current);
+  const [syncedCurrent, setSyncedCurrent] = useState<OrderStatus>(current);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  // Re-sync to server truth when the `current` prop changes (after a successful
+  // update + router.refresh()), so a later failed update rolls back to the real
+  // current status rather than a stale value. Adjusted during render (not in an
+  // effect) per React's "reset state when a prop changes" pattern.
+  if (current !== syncedCurrent) {
+    setSyncedCurrent(current);
+    setValue(current);
+  }
 
   function handleChange(next: OrderStatus) {
     setValue(next);
@@ -52,9 +62,7 @@ export function OrderStatusControl({
               onClick={() => handleChange(status)}
               className={clsx(
                 "rounded-full px-4 py-1.5 text-sm font-500 transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-                isActive
-                  ? "bg-[linear-gradient(105deg,#a749c5,#9128da)] text-white shadow-[0_8px_24px_rgba(146,40,218,0.3)]"
-                  : "border border-[rgba(167,73,197,0.2)] bg-[rgba(25,3,75,0.35)] text-polar-muted2 hover:border-[rgba(167,73,197,0.45)]",
+                isActive ? "pill-status-active" : "pill-status-inactive",
               )}
             >
               {STATUS_LABELS[status]}

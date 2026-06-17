@@ -7,12 +7,23 @@ import { Container } from "@/components/ui/Container";
 // Served from Supabase Storage (site-assets bucket) in deployed/cloud mode; falls
 // back to the local public/ file for offline dev. Set NEXT_PUBLIC_HOME_VIDEO_URL
 // in the cloud env profile.
-const VIDEO_SRC =
-  process.env.NEXT_PUBLIC_HOME_VIDEO_URL || "/PANTALLA%20POLAR%202.mov";
+//
+// IMPORTANT: the committed asset is a 21MB QuickTime .mov (H.264 inside a MOV
+// container), which Chrome/Firefox/Edge will not reliably play. The MP4 source
+// below is preferred so desktop browsers get a playable file; the .mov is kept
+// only as a last-resort source (mainly for Safari). To make the MP4 real, the
+// file `public/PANTALLA POLAR 2.mov` must be transcoded to H.264/AAC MP4 and
+// placed alongside it as `public/PANTALLA POLAR 2.mp4` (or referenced via
+// NEXT_PUBLIC_HOME_VIDEO_URL). ffmpeg example:
+//   ffmpeg -i "PANTALLA POLAR 2.mov" -c:v libx264 -c:a aac -movflags +faststart "PANTALLA POLAR 2.mp4"
+const VIDEO_SRC_MP4 =
+  process.env.NEXT_PUBLIC_HOME_VIDEO_URL || "/PANTALLA%20POLAR%202.mp4";
+const VIDEO_SRC_MOV = "/PANTALLA%20POLAR%202.mov";
 
 export function HomeVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
 
   function syncSoundState(video: HTMLVideoElement) {
     setSoundEnabled(!video.muted && video.volume > 0 && !video.paused);
@@ -29,6 +40,9 @@ export function HomeVideo() {
       await video.play();
       syncSoundState(video);
     } catch {
+      // Revert the imperative mutation so the element state and React state stay
+      // consistent (browser blocked unmuted autoplay/play).
+      video.muted = true;
       setSoundEnabled(false);
     }
   }
@@ -50,29 +64,43 @@ export function HomeVideo() {
           </div>
 
           <div className="relative overflow-hidden rounded-[8px] border border-[rgba(177,93,255,0.22)] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.42)]">
-            <video
-              ref={videoRef}
-              className="block aspect-video w-full bg-black object-cover"
-              src={VIDEO_SRC}
-              autoPlay
-              controls
-              loop
-              muted
-              onPause={(event) => syncSoundState(event.currentTarget)}
-              onPlay={(event) => syncSoundState(event.currentTarget)}
-              onVolumeChange={(event) => {
-                syncSoundState(event.currentTarget);
-              }}
-              playsInline
-              preload="auto"
-            />
-            {!soundEnabled && (
+            {videoFailed ? (
+              <div className="flex aspect-video w-full items-center justify-center bg-black px-6 text-center text-sm leading-relaxed text-polar-muted">
+                El video no se pudo reproducir en este navegador.
+              </div>
+            ) : (
+              // Decorative/ambient clip: no spoken content, so no captions track
+              // is required. The aria-label gives assistive tech a short name.
+              <video
+                ref={videoRef}
+                aria-label="Video ambiental de la experiencia Polar"
+                className="block aspect-video w-full bg-black object-cover"
+                autoPlay
+                controls
+                loop
+                muted
+                onError={() => setVideoFailed(true)}
+                onPause={(event) => syncSoundState(event.currentTarget)}
+                onPlay={(event) => syncSoundState(event.currentTarget)}
+                onVolumeChange={(event) => {
+                  syncSoundState(event.currentTarget);
+                }}
+                playsInline
+                preload="metadata"
+              >
+                {/* MP4 first so Chrome/Firefox/Edge get a playable file. */}
+                <source src={VIDEO_SRC_MP4} type="video/mp4" />
+                {/* QuickTime .mov kept as a last resort (mainly Safari). */}
+                <source src={VIDEO_SRC_MOV} />
+                El video no se pudo reproducir en este navegador.
+              </video>
+            )}
+            {!videoFailed && !soundEnabled && (
               <button
                 type="button"
                 aria-label="Activar sonido del video"
                 title="Activar sonido"
                 onClick={handleEnableSound}
-                onPointerDown={handleEnableSound}
                 className="absolute right-3 top-3 z-10 inline-flex h-14 w-14 items-center justify-center rounded-full border border-[rgba(255,255,255,0.2)] bg-black/66 text-white shadow-[0_12px_34px_rgba(0,0,0,0.56)] backdrop-blur-md transition-colors hover:border-[rgba(177,93,255,0.5)] hover:bg-[rgba(36,16,72,0.82)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-polar-purple md:right-4 md:top-4 md:h-[60px] md:w-[60px]"
               >
                 <VolumeMutedIcon className="h-7 w-7 md:h-8 md:w-8" />

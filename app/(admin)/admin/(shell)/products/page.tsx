@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatCop } from "@/lib/format";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ProductThumb } from "@/components/menu/ProductThumb";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { getAdminProducts } from "../../_lib/queries";
 import { ProductRowActions } from "../../_components/ProductRowActions";
 
@@ -28,9 +29,9 @@ export default async function AdminProductsPage() {
       </header>
 
       {!hasSupabaseEnv() && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Base de datos no configurada: catálogo de demostración (solo lectura).
-        </p>
+        </DemoModeNotice>
       )}
 
       <div className="glass-card overflow-hidden">

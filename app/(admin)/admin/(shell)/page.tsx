@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getOrders } from "@/lib/queries/orders";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { formatCop } from "@/lib/format";
 import type { Order, OrderStatus } from "@/lib/types";
-import { getAdminProducts } from "../_lib/queries";
-import { ORDER_STATUSES, deliveryLabel } from "../_lib/status";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
+import { getAdminProducts, getDashboardOrderStats } from "../_lib/queries";
+import { deliveryLabel } from "../_lib/status";
+import { formatDate } from "../_lib/dates";
 import { StatusBadge } from "../_components/StatusBadge";
 
 export const dynamic = "force-dynamic";
@@ -17,37 +18,25 @@ const DATE_FORMAT = new Intl.DateTimeFormat("es-CO", {
   minute: "2-digit",
 });
 
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return DATE_FORMAT.format(date);
-}
-
 export default async function AdminDashboardPage() {
-  const [products, orders] = await Promise.all([
+  // Aggregates come from head-only count requests + a narrow delivered/recent
+  // read (see getDashboardOrderStats) instead of materializing every order.
+  // force-dynamic page: the helper reads the request-time wall clock so the
+  // rolling 30-day revenue window is recomputed per request.
+  const [products, stats] = await Promise.all([
     getAdminProducts(),
-    getOrders(),
+    getDashboardOrderStats(),
   ]);
 
   const activeProducts = products.filter((p) => p.isActive).length;
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
-  const delivered = orders.filter((o) => o.status === "delivered");
-  const revenue = delivered.reduce((sum, o) => sum + o.totalCop, 0);
-
-  // force-dynamic page: read request-time wall clock via `new Date()` (mirrors
-  // components/seo/JsonLd.tsx) so the rolling 30-day window is recomputed per request.
-  const since = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
-  const revenueLast30 = delivered.reduce((sum, o) => {
-    const created = new Date(o.createdAt).getTime();
-    return Number.isNaN(created) || created < since ? sum : sum + o.totalCop;
-  }, 0);
-
-  const countsByStatus = ORDER_STATUSES.map((status) => ({
-    status,
-    count: orders.filter((o) => o.status === status).length,
-  }));
-
-  const recent = orders.slice(0, 8);
+  const {
+    total: ordersTotal,
+    pending: pendingOrders,
+    countsByStatus,
+    revenue,
+    revenueLast30,
+    recent,
+  } = stats;
 
   return (
     <div className="flex flex-col gap-8">
@@ -61,16 +50,16 @@ export default async function AdminDashboardPage() {
       </header>
 
       {!hasSupabaseEnv() && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Base de datos no configurada: mostrando catálogo de demostración. Los
           pedidos requieren conectar Supabase.
-        </p>
+        </DemoModeNotice>
       )}
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Productos" value={String(products.length)} />
         <StatCard label="Productos activos" value={String(activeProducts)} />
-        <StatCard label="Pedidos" value={String(orders.length)} />
+        <StatCard label="Pedidos" value={String(ordersTotal)} />
         <StatCard label="Pendientes" value={String(pendingOrders)} />
       </section>
 
@@ -167,7 +156,7 @@ function RecentOrderRow({ order }: { order: Order }) {
             {order.customerName}
           </p>
           <p className="text-xs text-polar-dim">
-            {deliveryLabel(order.deliveryType)} · {formatDate(order.createdAt)}
+            {deliveryLabel(order.deliveryType)} · {formatDate(order.createdAt, DATE_FORMAT)}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-3">

@@ -12,8 +12,9 @@ interface PlaceholderCupProps {
  */
 function lighten(hex: string, amount: number): string {
   const m = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
-  if (!m) return hex;
-  const int = parseInt(m[1], 16);
+  const hexDigits = m?.[1];
+  if (hexDigits === undefined) return hex;
+  const int = parseInt(hexDigits, 16);
   const r = (int >> 16) & 0xff;
   const g = (int >> 8) & 0xff;
   const b = int & 0xff;

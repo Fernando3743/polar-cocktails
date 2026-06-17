@@ -3,6 +3,7 @@ import { Snowfall } from "@/components/layout/Snowfall";
 import { Container } from "@/components/ui/Container";
 import { MenuJsonLd } from "@/components/seo/MenuJsonLd";
 import { getProducts, getCategories } from "@/lib/queries/menu";
+import { pageMetadata } from "@/lib/seo";
 
 // Single source so the page <meta> description and the social (OG/Twitter)
 // descriptions stay in sync.
@@ -10,40 +11,14 @@ const MENU_DESCRIPTION =
   "Explora todos los sabores de cócteles granizados Polar en Tuluá. " +
   "Frutales, tropicales, clásicos y especiales.";
 
-export const metadata = {
+// Relative og:url resolves against metadataBase (lib/seo.ts siteUrl()). The
+// shared file-convention OG/Twitter images are re-attached by pageMetadata.
+export const metadata = pageMetadata({
   title: "Menú de Cócteles Granizados en Tuluá",
+  socialTitle: "Menú — Polar",
   description: MENU_DESCRIPTION,
-  alternates: { canonical: "/menu" },
-  // Relative og:url resolves against metadataBase (lib/seo.ts siteUrl()).
-  openGraph: {
-    title: "Menú — Polar",
-    description: MENU_DESCRIPTION,
-    url: "/menu",
-    // A per-route openGraph object REPLACES the root's (it is not deep-merged),
-    // which drops the file-convention og:image — so re-attach the shared image
-    // (served at /opengraph-image.png) explicitly to keep /menu link previews.
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Menú — Polar",
-    description: MENU_DESCRIPTION,
-    // Same reason as openGraph above: re-attach the shared twitter image.
-    images: [
-      {
-        url: "/twitter-image.png",
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-};
+  path: "/menu",
+});
 
 export default async function MenuPage() {
   const [products, categories] = await Promise.all([

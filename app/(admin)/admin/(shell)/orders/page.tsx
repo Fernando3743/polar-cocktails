@@ -3,7 +3,9 @@ import { getOrdersPage } from "@/lib/queries/orders";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { formatCop } from "@/lib/format";
 import type { OrderStatus } from "@/lib/types";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { ORDER_STATUSES, deliveryLabel } from "../../_lib/status";
+import { formatDate } from "../../_lib/dates";
 import { StatusBadge } from "../../_components/StatusBadge";
 import { OrderStatusFilter } from "../../_components/OrderStatusFilter";
 
@@ -36,12 +38,6 @@ const DATE_FORMAT = new Intl.DateTimeFormat("es-CO", {
   minute: "2-digit",
 });
 
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return DATE_FORMAT.format(date);
-}
-
 export default async function AdminOrdersPage({
   searchParams,
 }: {
@@ -52,7 +48,7 @@ export default async function AdminOrdersPage({
   const term = q?.trim() ? q.trim() : undefined;
   const requestedPage = Math.max(1, Number.parseInt(page ?? "", 10) || 1);
 
-  const {
+  let {
     orders,
     total,
     page: currentPage,
@@ -62,6 +58,19 @@ export default async function AdminOrdersPage({
     q: term,
     page: requestedPage,
   });
+
+  // Clamp an out-of-range ?page (e.g. /admin/orders?page=999) to the last real
+  // page and re-fetch, so the served rows match the displayed page indicator
+  // and the prev/next links stay in range. getOrdersPage echoes back the
+  // requested page un-clamped, so this guard lives here.
+  const clampedPage = Math.min(requestedPage, Math.max(1, pageCount));
+  if (clampedPage !== currentPage) {
+    ({ orders, total, page: currentPage, pageCount } = await getOrdersPage({
+      status: active,
+      q: term,
+      page: clampedPage,
+    }));
+  }
 
   const hasPrev = currentPage > 1;
   const hasNext = currentPage < pageCount;
@@ -80,9 +89,9 @@ export default async function AdminOrdersPage({
       </header>
 
       {!hasSupabaseEnv() && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Base de datos no configurada: los pedidos requieren conectar Supabase.
-        </p>
+        </DemoModeNotice>
       )}
 
       <OrderStatusFilter active={active} q={term} />
@@ -136,7 +145,7 @@ export default async function AdminOrdersPage({
                     </p>
                   </div>
                   <p className="hidden text-xs text-polar-dim sm:block">
-                    {formatDate(order.createdAt)}
+                    {formatDate(order.createdAt, DATE_FORMAT)}
                   </p>
                   <span className="text-sm font-700 text-polar-text">
                     {formatCop(order.totalCop)}

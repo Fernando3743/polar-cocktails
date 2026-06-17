@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { PolarLogo } from "@/components/icons";
+import { Alert } from "@/components/ui/Alert";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="correo@ejemplo.com"
-              className="h-11 w-full rounded-xl border border-[rgba(167,73,197,0.2)] bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text outline-none transition-colors placeholder:text-polar-dim focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]"
+              className="input-polar"
             />
           </div>
 
@@ -99,18 +100,11 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="h-11 w-full rounded-xl border border-[rgba(167,73,197,0.2)] bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text outline-none transition-colors placeholder:text-polar-dim focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]"
+              className="input-polar"
             />
           </div>
 
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl border border-[rgba(226,69,122,0.4)] bg-[rgba(226,69,122,0.08)] px-4 py-3 text-sm text-[#f3a9c1]"
-            >
-              {error}
-            </p>
-          )}
+          {error && <Alert tone="error">{error}</Alert>}
 
           <button
             type="submit"

@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { createClient as createAnonClient } from "@supabase/supabase-js";
+import { createPublicClient } from "@/lib/supabase/public";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { SEED_SHOP_SETTINGS, SEED_SITE_ASSETS } from "@/lib/seed-data";
 import type {
@@ -8,19 +8,6 @@ import type {
   ShopSettings,
   SiteAsset,
 } from "@/lib/types";
-
-/**
- * Cookieless anon client for the public site config. Site assets and shop
- * settings are identical for every visitor, so they are read without
- * cookies/session — required because `unstable_cache` callbacks must not access
- * request-scoped data such as cookies(). Only constructed in DB mode.
- */
-function createPublicClient() {
-  return createAnonClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-}
 
 interface SiteAssetRow {
   slot: string;

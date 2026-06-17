@@ -92,8 +92,12 @@ are unaffected.
    sign-ups disabled, every authenticated user is the admin, which the RLS policies
    rely on.
 3. Authentication -> Users -> Add user -> Create new user: set the email to the
-   value you will use for `ADMIN_EMAIL`, set a password, and check "Auto Confirm
-   User". This is the only account that can sign in at `/admin`.
+   value you will use for `SUPER_ADMIN_EMAIL`, set a password, and check "Auto
+   Confirm User". This is the owner/super admin account. Creating the user does
+   not by itself grant admin access — that comes from `SUPER_ADMIN_EMAIL` (for
+   the super admin) or a role claim set with `set-admin-role.mjs` (see `SETUP.md`
+   for the full admin-role rollout). The super admin then creates additional
+   admins in-app at `/admin/admins`.
 4. Authentication -> URL Configuration: set the Site URL to the production domain
    and add the production and Vercel preview URLs to Redirect URLs. Skipping this is
    the most common cause of admin-login failures in production.
@@ -109,7 +113,9 @@ are unaffected.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the Supabase anon public key.
    - `SUPABASE_SERVICE_ROLE_KEY` — the service_role key. SERVER ONLY: never add the
      `NEXT_PUBLIC_` prefix.
-   - `ADMIN_EMAIL` — the admin email from step 3 (setup metadata).
+   - `SUPER_ADMIN_EMAIL` — the owner/super-admin email from step 3. SERVER ONLY:
+     never add the `NEXT_PUBLIC_` prefix. (The legacy `ADMIN_EMAIL` var is no
+     longer read by the app.)
    - `NEXT_PUBLIC_SITE_URL` — the final production `https://` domain.
    - `NEXT_PUBLIC_ANALYTICS` — set to `1` to enable Vercel Analytics + Speed
      Insights in Production (leave unset for Preview/demo so no tracking is

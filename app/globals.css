@@ -289,4 +289,74 @@
     border: 1px solid rgba(167, 73, 197, 0.25);
     color: #a749c5;
   }
+
+  /* Shared form input. Matches the duplicated inline Tailwind input string used
+     across the checkout and admin forms (height, dark fill, purple border,
+     focus ring). The error/disabled variants below are no-ops unless the
+     matching modifier/state is present, so the base class is safe everywhere. */
+  .input-polar {
+    height: 44px;
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(167, 73, 197, 0.2);
+    background: rgba(25, 3, 75, 0.35);
+    padding-inline: 16px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #eeedef;
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  .input-polar::placeholder {
+    color: #7e7790;
+  }
+  /* Error state: applied via the `input-error` modifier on form fields. Placed
+     before :focus so a focused field still shows the purple focus border,
+     matching the original `focus:border-*` precedence over the error border. */
+  .input-polar.input-error {
+    border-color: rgba(226, 69, 122, 0.6);
+  }
+  .input-polar:focus {
+    border-color: #a749c5;
+    box-shadow: 0 0 0 2px rgba(146, 40, 218, 0.25);
+  }
+  .input-polar:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Purple text link with trailing arrow, as used in the contacto cards and the
+     home InfoRow CTAs. The arrow icon is a sibling SVG; this only styles the
+     link text + hover. */
+  .link-accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #b84dff;
+    transition: color 150ms ease;
+  }
+  .link-accent:hover {
+    color: #deb7ff;
+  }
+
+  /* Admin status pill, selected state. Reuses the brand gradient + lift of the
+     storefront `.pill-active` but at the smaller admin padding/scale. */
+  .pill-status-active {
+    background: linear-gradient(105deg, #a749c5, #9128da);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(146, 40, 218, 0.3);
+  }
+  /* Admin status pill, unselected state. The button keeps its own
+     `transition-colors`, so the hover border change animates without a
+     transition declared here. */
+  .pill-status-inactive {
+    border: 1px solid rgba(167, 73, 197, 0.2);
+    background: rgba(25, 3, 75, 0.35);
+    color: #b6acb9;
+  }
+  .pill-status-inactive:hover {
+    border-color: rgba(167, 73, 197, 0.45);
+  }
 }

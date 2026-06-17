@@ -7,6 +7,16 @@ import { SITE_NAME, OPENING_HOURS, GEO } from "@/lib/config";
 // fake telephone in structured data (SEO-005).
 const PLACEHOLDER_WHATSAPP = "573000000000";
 
+// Safe serialization for embedding JSON-LD inside <script>. JSON.stringify does
+// not escape "</script>" or the JS line separators U+2028/U+2029, so escape "<"
+// and those code points to prevent breaking out of the tag (stored XSS).
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
 export async function JsonLd() {
   const origin = siteUrl();
   // Both branch on hasSupabaseEnv() and fall back to seed/constants automatically.
@@ -130,7 +140,7 @@ export async function JsonLd() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(json) }}
     />
   );
 }

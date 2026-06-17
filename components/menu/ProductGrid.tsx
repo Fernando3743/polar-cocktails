@@ -6,6 +6,14 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products }: ProductGridProps) {
+  if (products.length === 0) {
+    return (
+      <p className="py-12 text-center text-sm text-polar-muted">
+        No hay productos disponibles en esta categoría por ahora.
+      </p>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-[10px] sm:grid-cols-3 lg:grid-cols-6 lg:gap-2">
       {products.map((product) => (

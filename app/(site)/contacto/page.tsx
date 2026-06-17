@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Snowfall } from "@/components/layout/Snowfall";
@@ -12,7 +11,8 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/icons";
-import { SITE_NAME, whatsappUrl } from "@/lib/config";
+import { SITE_NAME, isPlaceholderWhatsapp, whatsappUrl } from "@/lib/config";
+import { pageMetadata } from "@/lib/seo";
 import { getShopSettings } from "@/lib/queries/site";
 import type { OpeningHour } from "@/lib/types";
 
@@ -28,35 +28,12 @@ const DELIVERY_MESSAGE =
 const SPECIAL_ORDER_MESSAGE =
   "¡Hola Polar! Quiero cotizar un pedido especial.";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Contacto",
+  socialTitle: "Contacto — Polar",
   description: CONTACT_DESCRIPTION,
-  alternates: { canonical: "/contacto" },
-  openGraph: {
-    title: "Contacto — Polar",
-    description: CONTACT_DESCRIPTION,
-    url: "/contacto",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Contacto — Polar",
-    description: CONTACT_DESCRIPTION,
-    images: [
-      {
-        url: "/twitter-image.png",
-        alt: "Polar — Cócteles Granizados en Tuluá",
-      },
-    ],
-  },
-};
+  path: "/contacto",
+});
 
 function formatPhone(number: string): string {
   if (number.length === 12 && number.startsWith("57")) {
@@ -94,6 +71,10 @@ function HoursList({ hours }: { hours: OpeningHour[] }) {
 export default async function ContactPage() {
   const settings = await getShopSettings();
   const addressText = settings.addressLines.join(", ");
+  // While the WhatsApp number is still the placeholder, never show a formatted
+  // phone label or wire a dialable WhatsApp CTA (a fake number must not be shown
+  // or dialed). Map/location CTAs are unaffected.
+  const whatsappPending = isPlaceholderWhatsapp(settings.whatsappNumber);
   const phoneLabel = formatPhone(settings.whatsappNumber);
   const socialLinks = [
     {
@@ -122,15 +103,25 @@ export default async function ContactPage() {
                 sabores o indicaciones para visitarnos en Tuluá.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={whatsappUrl(CONTACT_MESSAGE, settings.whatsappNumber)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-brand"
-                >
-                  <WhatsAppIcon className="h-5 w-5" />
-                  Escribir por WhatsApp
-                </a>
+                {whatsappPending ? (
+                  <span
+                    aria-disabled="true"
+                    className="btn-brand cursor-not-allowed opacity-60"
+                  >
+                    <WhatsAppIcon className="h-5 w-5" />
+                    WhatsApp disponible pronto
+                  </span>
+                ) : (
+                  <a
+                    href={whatsappUrl(CONTACT_MESSAGE, settings.whatsappNumber)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-brand"
+                  >
+                    <WhatsAppIcon className="h-5 w-5" />
+                    Escribir por WhatsApp
+                  </a>
+                )}
                 <a
                   href={settings.mapsUrl}
                   target="_blank"
@@ -156,15 +147,21 @@ export default async function ContactPage() {
                     Nuestro canal principal es WhatsApp. Te ayudamos a elegir
                     sabores, confirmar disponibilidad y coordinar tu pedido.
                   </p>
-                  <a
-                    href={whatsappUrl(CONTACT_MESSAGE, settings.whatsappNumber)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#B84DFF] transition-colors hover:text-[#DEB7FF]"
-                  >
-                    {phoneLabel}
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </a>
+                  {whatsappPending ? (
+                    <p className="mt-5 text-sm font-semibold text-polar-muted">
+                      Habilitaremos nuestro WhatsApp muy pronto.
+                    </p>
+                  ) : (
+                    <a
+                      href={whatsappUrl(CONTACT_MESSAGE, settings.whatsappNumber)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-accent mt-5 gap-2"
+                    >
+                      {phoneLabel}
+                      <ArrowRightIcon className="h-4 w-4" />
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -182,15 +179,21 @@ export default async function ContactPage() {
                 Pide tus cócteles granizados y confirma cobertura, tiempos de
                 entrega y forma de pago por WhatsApp.
               </p>
-              <a
-                href={whatsappUrl(DELIVERY_MESSAGE, settings.whatsappNumber)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#B84DFF] transition-colors hover:text-[#DEB7FF]"
-              >
-                Pedir domicilio
-                <ArrowRightIcon className="h-4 w-4" />
-              </a>
+              {whatsappPending ? (
+                <p className="mt-5 text-sm font-semibold text-polar-muted">
+                  Disponible pronto por WhatsApp.
+                </p>
+              ) : (
+                <a
+                  href={whatsappUrl(DELIVERY_MESSAGE, settings.whatsappNumber)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-accent mt-5 gap-2"
+                >
+                  Pedir domicilio
+                  <ArrowRightIcon className="h-4 w-4" />
+                </a>
+              )}
             </article>
 
             <article className="glass-card px-6 py-6">
@@ -212,7 +215,7 @@ export default async function ContactPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Ver ubicación de ${SITE_NAME}: ${addressText}`}
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#B84DFF] transition-colors hover:text-[#DEB7FF]"
+                className="link-accent mt-5 gap-2"
               >
                 Abrir mapa
                 <ArrowRightIcon className="h-4 w-4" />
@@ -230,18 +233,24 @@ export default async function ContactPage() {
                 Cuéntanos la ocasión, cantidad estimada y sabores que tienes en
                 mente para orientarte con una cotización.
               </p>
-              <a
-                href={whatsappUrl(
-                  SPECIAL_ORDER_MESSAGE,
-                  settings.whatsappNumber,
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#B84DFF] transition-colors hover:text-[#DEB7FF]"
-              >
-                Cotizar pedido
-                <ArrowRightIcon className="h-4 w-4" />
-              </a>
+              {whatsappPending ? (
+                <p className="mt-5 text-sm font-semibold text-polar-muted">
+                  Disponible pronto por WhatsApp.
+                </p>
+              ) : (
+                <a
+                  href={whatsappUrl(
+                    SPECIAL_ORDER_MESSAGE,
+                    settings.whatsappNumber,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-accent mt-5 gap-2"
+                >
+                  Cotizar pedido
+                  <ArrowRightIcon className="h-4 w-4" />
+                </a>
+              )}
             </article>
           </section>
 

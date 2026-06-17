@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { requireSuperAdmin } from "@/lib/auth";
 import { listAdmins } from "@/lib/actions/admins";
+import { Alert } from "@/components/ui/Alert";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { AdminsManager } from "../../_components/AdminsManager";
 
 export const dynamic = "force-dynamic";
@@ -32,19 +34,12 @@ export default async function AdminAdminsPage() {
       </header>
 
       {!hasEnv && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Configura Supabase para gestionar administradores.
-        </p>
+        </DemoModeNotice>
       )}
 
-      {loadError && (
-        <p
-          role="alert"
-          className="rounded-xl border border-[rgba(226,69,122,0.4)] bg-[rgba(226,69,122,0.08)] px-4 py-3 text-sm text-[#f3a9c1]"
-        >
-          {loadError}
-        </p>
-      )}
+      {loadError && <Alert tone="error">{loadError}</Alert>}
 
       <AdminsManager initial={admins} selfId={guard.user.id} hasEnv={hasEnv} />
     </div>

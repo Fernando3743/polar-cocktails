@@ -116,16 +116,20 @@ export async function updateProduct(
     return { ok: false, error: "Categoría no encontrada." };
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("products")
     .update(toRow(parsed.data, categoryId))
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     if (isUniqueViolation(error)) {
       return { ok: false, error: "Ya existe un producto con ese slug." };
     }
     return { ok: false, error: "No pudimos actualizar el producto." };
+  }
+  if (!data || data.length === 0) {
+    return { ok: false, error: "No se encontró el registro." };
   }
 
   revalidateStorefrontAndAdmin();
@@ -144,7 +148,11 @@ export async function deleteProduct(
   if (!guard.ok) return { ok: false, error: guard.error };
   const supabase = await createClient();
 
-  const { error } = await supabase.from("products").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id)
+    .select("id");
   if (error) {
     if (isForeignKeyViolation(error)) {
       return {
@@ -154,6 +162,9 @@ export async function deleteProduct(
       };
     }
     return { ok: false, error: "No pudimos eliminar el producto." };
+  }
+  if (!data || data.length === 0) {
+    return { ok: false, error: "No se encontró el registro." };
   }
 
   revalidateStorefrontAndAdmin();

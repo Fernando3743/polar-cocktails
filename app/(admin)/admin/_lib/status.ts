@@ -35,7 +35,6 @@ export const STATUS_BADGE: Record<OrderStatus, string> = {
     "border-[rgba(226,69,122,0.45)] bg-[rgba(226,69,122,0.1)] text-[#f3a9c1]",
 };
 
-/** Spanish label for a delivery type. */
-export function deliveryLabel(type: "delivery" | "pickup"): string {
-  return type === "delivery" ? "Domicilio" : "Recoger en tienda";
-}
+// Spanish delivery-type label, re-exported from the shared labels module so the
+// admin order views and the WhatsApp message builder share one source.
+export { deliveryLabel } from "@/lib/labels";

@@ -1,5 +1,15 @@
+// Placeholder digits-only WhatsApp number. While the configured number equals
+// this, callers must not render a formatted phone label or wire a dialable CTA,
+// so a fake number is never shown or dialed (SEO-005).
+export const PLACEHOLDER_WHATSAPP = "573000000000";
+
 // TODO: replace with the shop's real WhatsApp number (digits only, country code first).
-export const WHATSAPP_NUMBER = "573000000000";
+export const WHATSAPP_NUMBER = PLACEHOLDER_WHATSAPP;
+
+/** True while the given number is still the placeholder (no real number set). */
+export function isPlaceholderWhatsapp(number: string): boolean {
+  return number === PLACEHOLDER_WHATSAPP;
+}
 
 export const ADDRESS_LINES = [
   "Tuluá",

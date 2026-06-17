@@ -1,10 +1,12 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { requireAdmin } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 import { SEED_PRODUCTS } from "@/lib/seed-data";
 import { orderSchema, orderStatusSchema } from "@/lib/validation/schemas";
 import type { OrderInput, OrderStatus } from "@/lib/types";
@@ -48,6 +50,44 @@ type CreateOrderRpcResult = {
 };
 
 /**
+ * Narrows the untyped jsonb the RPC returns to the expected summary shape.
+ * Validates only the top-level fields createOrder reads — a cheap guard so a
+ * malformed result degrades to the generic error instead of crashing the map.
+ */
+function isCreateOrderRpcResult(
+  value: unknown,
+): value is CreateOrderRpcResult {
+  if (typeof value !== "object" || value === null) return false;
+  const r = value as Record<string, unknown>;
+  return (
+    typeof r.short_code === "string" &&
+    Array.isArray(r.items) &&
+    typeof r.subtotal_cop === "number" &&
+    typeof r.total_cop === "number"
+  );
+}
+
+/**
+ * Collapses repeated productIds into one entry each, summing their quantities
+ * while preserving first-seen order. Both pricing branches consume this so a
+ * product that appears in several cart lines is priced once.
+ */
+function dedupeItemsByProductId(
+  items: OrderInput["items"],
+): OrderInput["items"] {
+  const merged = new Map<string, { productId: string; qty: number }>();
+  for (const item of items) {
+    const existing = merged.get(item.productId);
+    if (existing) {
+      existing.qty += item.qty;
+    } else {
+      merged.set(item.productId, { productId: item.productId, qty: item.qty });
+    }
+  }
+  return Array.from(merged.values());
+}
+
+/**
  * Creates an order. The price of every line is re-fetched server-side
  * (from the DB, or from SEED_PRODUCTS in demo mode) and all totals are
  * recomputed here — client-supplied prices are never trusted.
@@ -67,11 +107,30 @@ export async function createOrder(
 
   const data = parsed.data;
 
+  // Best-effort abuse barrier: cap order attempts per client IP before any
+  // pricing or DB work. createOrder is callable unauthenticated, so this
+  // throttles spam / amplification. Per-instance in-memory (see lib/rate-limit.ts);
+  // back it with a shared store for strict multi-instance limits.
+  const forwardedFor = (await headers()).get("x-forwarded-for") ?? "";
+  const clientIp = forwardedFor.split(",")[0]?.trim() || "unknown";
+  if (!rateLimit(`createOrder:${clientIp}`, 10, 60_000).ok) {
+    return {
+      ok: false,
+      error: "Demasiados pedidos seguidos. Espera un momento e intenta de nuevo.",
+    };
+  }
+
+  // De-duplicate by productId before pricing: a client could send the same
+  // product across many lines, so merge their quantities into one line each.
+  // Bounds amplification together with the per-array cap in orderSchema, and
+  // keeps the demo and DB branches pricing an identical, normalized list.
+  const items = dedupeItemsByProductId(data.items);
+
   // --- Demo mode (no database): price against the seed catalog. -----------
   if (!hasSupabaseEnv()) {
     const summaryItems: OrderSummary["items"] = [];
     let subtotal = 0;
-    for (const item of data.items) {
+    for (const item of items) {
       const product = SEED_PRODUCTS.find(
         (p) => p.id === item.productId && p.isActive,
       );
@@ -123,7 +182,7 @@ export async function createOrder(
       address: data.address ?? null,
       deliveryType: data.deliveryType,
       notes: data.notes ?? null,
-      items: data.items.map((item) => ({
+      items: items.map((item) => ({
         productId: item.productId,
         qty: item.qty,
       })),
@@ -150,7 +209,12 @@ export async function createOrder(
   }
 
   // The RPC returns an authoritative jsonb summary; map snake_case -> camelCase.
-  const r = rpcResult as CreateOrderRpcResult;
+  // Lightly confirm the shape before trusting it; fall back to the generic
+  // error if the RPC ever returns something unexpected.
+  if (!isCreateOrderRpcResult(rpcResult)) {
+    return { ok: false, error: "No pudimos crear tu pedido. Intenta de nuevo." };
+  }
+  const r = rpcResult;
   const summary: OrderSummary = {
     shortCode: r.short_code,
     items: (r.items ?? []).map((it) => ({
@@ -170,11 +234,12 @@ export async function createOrder(
 }
 
 /**
- * Admin: change an order's status. Gated by requireAdmin() (validates the JWT
- * and, when ADMIN_EMAIL is set, the admin identity); RLS also enforces that
- * only authenticated users can update orders. Inputs are validated server-side
- * before touching Supabase: the id must be non-empty and the status must be a
- * known order status.
+ * Admin: change an order's status. Gated by requireAdmin(), which validates the
+ * JWT (never getSession()) and passes when the user is the SUPER_ADMIN_EMAIL
+ * super admin OR carries app_metadata.role in {admin, super_admin} — there is no
+ * ADMIN_EMAIL fallback. RLS also enforces that only authenticated users can
+ * update orders. Inputs are validated server-side before touching Supabase: the
+ * id must be non-empty and the status must be a known order status.
  */
 export async function updateOrderStatus(
   id: string,
@@ -199,13 +264,17 @@ export async function updateOrderStatus(
   if (!guard.ok) return { ok: false, error: guard.error };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("orders")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     return { ok: false, error: "No pudimos actualizar el estado." };
+  }
+  if (!data || data.length === 0) {
+    return { ok: false, error: "No se encontró el registro." };
   }
 
   revalidatePath("/admin/orders");

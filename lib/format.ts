@@ -7,9 +7,12 @@ const copFormatter = new Intl.NumberFormat("es-CO", {
 /**
  * Formats an integer COP amount as "$18.000".
  * Strips any whitespace so the symbol sits flush against the digits.
+ * Non-finite or non-integer input is coerced (NaN/Infinity -> 0, floats
+ * rounded) so a bad value never renders as "$NaN".
  */
 export function formatCop(n: number): string {
-  return copFormatter.format(n).replace(/\s/g, "");
+  const safe = Number.isFinite(n) ? Math.round(n) : 0;
+  return copFormatter.format(safe).replace(/\s/g, "");
 }
 
 /**

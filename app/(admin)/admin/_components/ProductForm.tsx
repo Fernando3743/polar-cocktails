@@ -9,6 +9,8 @@ import { slugify } from "@/lib/format";
 import { uploadPublicImage } from "@/lib/storage";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { PlaceholderCup } from "@/components/icons";
+import { Field } from "@/components/ui/Field";
+import { Alert } from "@/components/ui/Alert";
 import type { Category } from "@/lib/types";
 
 type FieldKey = keyof ProductSchema;
@@ -185,7 +187,7 @@ export function ProductForm({
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             aria-label="Nombre"
-            className={inputClass(!!errors.name)}
+            className={clsx("input-polar", errors.name && "input-error")}
             placeholder="Polar Blue"
           />
         </Field>
@@ -199,7 +201,7 @@ export function ProductForm({
               setSlug(e.target.value);
             }}
             aria-label="Slug"
-            className={inputClass(!!errors.slug)}
+            className={clsx("input-polar", errors.slug && "input-error")}
             placeholder="polar-blue"
           />
         </Field>
@@ -210,7 +212,11 @@ export function ProductForm({
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             aria-label="Descripción"
-            className={clsx(inputClass(!!errors.description), "min-h-[88px] resize-y py-3")}
+            className={clsx(
+              "input-polar",
+              errors.description && "input-error",
+              "min-h-[88px] resize-y py-3",
+            )}
             placeholder="Vodka, curaçao blue, limón y azúcar."
           />
         </Field>
@@ -225,7 +231,7 @@ export function ProductForm({
               value={priceCop}
               onChange={(e) => setPriceCop(e.target.value)}
               aria-label="Precio (COP)"
-              className={inputClass(!!errors.priceCop)}
+              className={clsx("input-polar", errors.priceCop && "input-error")}
             />
           </Field>
 
@@ -233,7 +239,7 @@ export function ProductForm({
             <select
               value={categorySlug}
               onChange={(e) => setCategorySlug(e.target.value)}
-              className={inputClass(!!errors.categorySlug)}
+              className={clsx("input-polar", errors.categorySlug && "input-error")}
             >
               {categories.length === 0 && (
                 <option value="">Sin categorías</option>
@@ -262,7 +268,11 @@ export function ProductForm({
                 value={accentColor}
                 onChange={(e) => setAccentColor(e.target.value)}
                 aria-label="Código de color de acento"
-                className={clsx(inputClass(!!errors.accentColor), "font-mono uppercase")}
+                className={clsx(
+                  "input-polar",
+                  errors.accentColor && "input-error",
+                  "font-mono uppercase",
+                )}
                 placeholder="#2EA6E0"
               />
             </div>
@@ -276,7 +286,7 @@ export function ProductForm({
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
               aria-label="Orden"
-              className={inputClass(!!errors.sortOrder)}
+              className={clsx("input-polar", errors.sortOrder && "input-error")}
             />
           </Field>
         </div>
@@ -341,7 +351,7 @@ export function ProductForm({
             value={stockQty}
             onChange={(e) => setStockQty(e.target.value)}
             aria-label="Stock disponible"
-            className={inputClass(!!errors.stockQty)}
+            className={clsx("input-polar", errors.stockQty && "input-error")}
             placeholder="Sin control"
           />
           <p className="text-xs text-polar-dim">
@@ -374,14 +384,7 @@ export function ProductForm({
           </span>
         </label>
 
-        {formError && (
-          <p
-            role="alert"
-            className="rounded-xl border border-[rgba(226,69,122,0.4)] bg-[rgba(226,69,122,0.08)] px-4 py-3 text-sm text-[#f3a9c1]"
-          >
-            {formError}
-          </p>
-        )}
+        {formError && <Alert tone="error">{formError}</Alert>}
 
         <div className="flex flex-wrap gap-3 pt-1">
           <button
@@ -446,35 +449,5 @@ export function ProductForm({
         </div>
       </aside>
     </form>
-  );
-}
-
-function inputClass(hasError: boolean): string {
-  return clsx(
-    "h-11 w-full rounded-xl border bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text placeholder:text-polar-dim outline-none transition-colors",
-    "focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]",
-    hasError ? "border-[rgba(226,69,122,0.6)]" : "border-[rgba(167,73,197,0.2)]",
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-600 text-polar-text">{label}</label>
-      {children}
-      {error && (
-        <p className="text-xs text-[#f3a9c1]" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
   );
 }

@@ -75,7 +75,17 @@ function AssetCard({
   const [status, setStatus] = useState<SlotStatus>({ kind: "idle" });
   const [imgError, setImgError] = useState(false);
   const [hrefValue, setHrefValue] = useState(href);
+  const [syncedHref, setSyncedHref] = useState(href);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // After a save + router.refresh(), re-sync the input to the server-confirmed
+  // href so it reflects what was actually persisted (and normalized: trimmed,
+  // or cleared when stored as null). Adjusted during render (not in an effect)
+  // per React's "reset state when a prop changes" pattern.
+  if (href !== syncedHref) {
+    setSyncedHref(href);
+    setHrefValue(href);
+  }
 
   // Persist a url + href pair for this slot, then refresh server data on ok.
   function save(nextUrl: string, nextHref: string) {
@@ -181,7 +191,7 @@ function AssetCard({
               onChange={(e) => setHrefValue(e.target.value)}
               placeholder="https://instagram.com/..."
               disabled={!hasEnv || pending}
-              className={inputClass}
+              className="input-polar"
             />
             <button
               type="button"
@@ -220,9 +230,3 @@ function StatusLabel({
   }
   return null;
 }
-
-const inputClass = clsx(
-  "h-11 w-full rounded-xl border border-[rgba(167,73,197,0.2)] bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text placeholder:text-polar-dim outline-none transition-colors",
-  "focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]",
-  "disabled:cursor-not-allowed disabled:opacity-50",
-);

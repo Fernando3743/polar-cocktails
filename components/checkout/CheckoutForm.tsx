@@ -11,6 +11,8 @@ import { formatCop } from "@/lib/format";
 import { buildWhatsAppLink, whatsappSummaryFromOrder } from "@/lib/whatsapp";
 import { PlusIcon } from "@/components/icons";
 import { ProductThumb } from "@/components/menu/ProductThumb";
+import { Field } from "@/components/ui/Field";
+import { Alert } from "@/components/ui/Alert";
 import type { DeliveryType, OrderInput } from "@/lib/types";
 
 type FieldErrors = Partial<
@@ -214,7 +216,7 @@ export function CheckoutForm() {
                 onChange={(e) => setCustomerName(e.target.value)}
                 autoComplete="name"
                 placeholder="Tu nombre"
-                className={inputClass(!!errors.customerName)}
+                className={clsx("input-polar", errors.customerName && "input-error")}
               />
             </Field>
 
@@ -231,7 +233,7 @@ export function CheckoutForm() {
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 autoComplete="tel"
                 placeholder="3001234567"
-                className={inputClass(!!errors.customerPhone)}
+                className={clsx("input-polar", errors.customerPhone && "input-error")}
               />
             </Field>
           </div>
@@ -245,7 +247,7 @@ export function CheckoutForm() {
                 onChange={(e) => setAddress(e.target.value)}
                 autoComplete="street-address"
                 placeholder="Calle 41a # 26-81, barrio..."
-                className={inputClass(!!errors.address)}
+                className={clsx("input-polar", errors.address && "input-error")}
               />
             </Field>
           )}
@@ -257,18 +259,11 @@ export function CheckoutForm() {
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Sin azúcar, dejar en portería, etc."
-              className={clsx(inputClass(false), "min-h-[88px] resize-y py-3")}
+              className={clsx("input-polar", "min-h-[88px] resize-y py-3")}
             />
           </Field>
 
-          {formError && (
-            <p
-              role="alert"
-              className="rounded-xl border border-[rgba(226,69,122,0.4)] bg-[rgba(226,69,122,0.08)] px-4 py-3 text-sm text-[#f3a9c1]"
-            >
-              {formError}
-            </p>
-          )}
+          {formError && <Alert tone="error">{formError}</Alert>}
 
           <button
             type="submit"
@@ -401,42 +396,6 @@ export function CheckoutForm() {
           </Link>
         </div>
       </aside>
-    </div>
-  );
-}
-
-function inputClass(hasError: boolean): string {
-  return clsx(
-    "h-11 w-full rounded-xl border bg-[rgba(25,3,75,0.35)] px-4 text-sm text-polar-text placeholder:text-polar-dim transition-colors outline-none",
-    "focus:border-polar-purple-light focus:ring-2 focus:ring-[rgba(146,40,218,0.25)]",
-    hasError
-      ? "border-[rgba(226,69,122,0.6)]"
-      : "border-[rgba(167,73,197,0.2)]",
-  );
-}
-
-function Field({
-  id,
-  label,
-  error,
-  children,
-}: {
-  id: string;
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-600 text-polar-text">
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p className="text-xs text-[#f3a9c1]" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   );
 }

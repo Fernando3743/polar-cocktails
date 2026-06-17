@@ -1,4 +1,5 @@
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { getAdminCategories } from "../../_lib/queries";
 import { CategoriesManager } from "../../_components/CategoriesManager";
 
@@ -20,10 +21,10 @@ export default async function AdminCategoriesPage() {
       </header>
 
       {!hasSupabaseEnv() && (
-        <p className="rounded-xl border border-[rgba(224,165,46,0.4)] bg-[rgba(224,165,46,0.08)] px-4 py-3 text-sm text-[#e0c08a]">
+        <DemoModeNotice>
           Base de datos no configurada: categorías de demostración (solo
           lectura).
-        </p>
+        </DemoModeNotice>
       )}
 
       <CategoriesManager

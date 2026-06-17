@@ -78,6 +78,7 @@ export function CartDrawer() {
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       const active = document.activeElement;
 
       if (e.shiftKey) {
@@ -189,7 +190,12 @@ export function CartDrawer() {
           </div>
         ) : (
           <ul className="flex-1 space-y-3 overflow-y-auto px-5 py-5">
-            {items.map((item) => (
+            {items.map((item) => {
+              // Cap the "+" at the product's stock when it is tracked. A null
+              // stockQty (untracked) imposes no cap.
+              const atStockCap =
+                item.stockQty != null && item.qty >= item.stockQty;
+              return (
               <li
                 key={item.productId}
                 className="glass-card flex items-center gap-3 p-3"
@@ -242,12 +248,23 @@ export function CartDrawer() {
                     <button
                       type="button"
                       onClick={() => setQty(item.productId, item.qty + 1)}
+                      disabled={atStockCap}
+                      aria-disabled={atStockCap}
                       aria-label={`Aumentar cantidad de ${item.name}`}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-polar-purple-light/25 text-polar-muted2 transition-colors hover:border-polar-purple-light/50 hover:text-polar-text"
+                      className={clsx(
+                        "inline-flex h-7 w-7 items-center justify-center rounded-lg border border-polar-purple-light/25 text-polar-muted2 transition-colors hover:border-polar-purple-light/50 hover:text-polar-text",
+                        atStockCap &&
+                          "cursor-not-allowed opacity-40 hover:border-polar-purple-light/25 hover:text-polar-muted2",
+                      )}
                     >
                       <PlusIcon className="h-3.5 w-3.5" />
                     </button>
                   </div>
+                  {atStockCap && (
+                    <p className="mt-1 text-[11px] text-polar-dim">
+                      Solo {item.stockQty} disponible{item.stockQty === 1 ? "" : "s"}
+                    </p>
+                  )}
                 </div>
 
                 {/* Line total + remove */}
@@ -278,7 +295,8 @@ export function CartDrawer() {
                   </span>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
 

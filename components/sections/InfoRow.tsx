@@ -8,8 +8,7 @@ import {
 import { ADDRESS_LINES, MAPS_URL, whatsappUrl } from "@/lib/config";
 import type { OpeningHour } from "@/lib/types";
 
-const ctaClass =
-  "mt-[9px] inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#B84DFF] transition-colors hover:text-[#DEB7FF]";
+const ctaClass = "link-accent mt-[9px]";
 
 const DELIVERY_MESSAGE =
   "¡Hola Polar! Quiero pedir un domicilio de cócteles granizados.";
