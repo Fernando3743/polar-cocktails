@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { getShopSettings } from "@/lib/queries/site";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,12 @@ const CHECKOUT_STEPS = [
   "Confirma por WhatsApp",
 ];
 
-export default function CheckoutPage() {
+export default async function CheckoutPage() {
+  // Shop WhatsApp number from settings, threaded into the form so the handoff
+  // dials the configured number (not the config placeholder). Falls back to the
+  // seed in demo mode / before migration 0007, mirroring the order page.
+  const settings = await getShopSettings();
+
   return (
     <div className="relative overflow-hidden px-0 pb-28 pt-10 sm:pb-16 sm:pt-14">
       <div
@@ -57,7 +63,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-8 lg:mt-10">
-            <CheckoutForm />
+            <CheckoutForm whatsappNumber={settings.whatsappNumber} />
           </div>
         </div>
       </Container>

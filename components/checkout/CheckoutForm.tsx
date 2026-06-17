@@ -22,7 +22,14 @@ type FieldErrors = Partial<
   >
 >;
 
-export function CheckoutForm() {
+export function CheckoutForm({
+  // Shop WhatsApp number from settings, threaded from the server page. The
+  // handoff link must dial this number; without it buildWhatsAppLink falls back
+  // to the config placeholder (the bug where orders went to the placeholder).
+  whatsappNumber,
+}: {
+  whatsappNumber?: string;
+}) {
   const router = useRouter();
   const { items, setQty, removeItem, subtotalCop, clear, mounted } = useCart();
 
@@ -109,7 +116,7 @@ export function CheckoutForm() {
         } catch {
           // private mode / quota: confirmation page falls back to the generic link
         }
-        const whatsappHref = buildWhatsAppLink(summary);
+        const whatsappHref = buildWhatsAppLink(summary, whatsappNumber);
         if (whatsappWindow) {
           whatsappWindow.opener = null;
           whatsappWindow.location.href = whatsappHref;
