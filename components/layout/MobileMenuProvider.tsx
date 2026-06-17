@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useMemo, useState } from "react";
+import { createContext, use, useEffect, useMemo, useState } from "react";
 
 interface MobileMenuContextValue {
   mobileMenuOpen: boolean;
@@ -16,6 +16,17 @@ export function MobileMenuProvider({
   children: React.ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Lock body scroll while the mobile menu is open so the page can't slide
+  // behind the fixed drawer. Only the mobile menu ever sets this open.
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [mobileMenuOpen]);
 
   const value = useMemo<MobileMenuContextValue>(
     () => ({

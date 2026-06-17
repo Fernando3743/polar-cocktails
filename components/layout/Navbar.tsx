@@ -40,7 +40,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
   }
 
   return (
-    <header className="relative z-50 border-b border-[rgba(255,255,255,0.07)] bg-black md:border-b-0 md:bg-transparent">
+    <header className="sticky top-0 z-50 border-b border-[rgba(255,255,255,0.07)] bg-black md:static md:border-b-0 md:bg-transparent">
       <div
         className="pointer-events-none absolute right-0 top-0 hidden h-full w-[520px] md:block"
         style={{
