@@ -5,7 +5,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatCop } from "@/lib/format";
-import { PlaceholderCup, PlusIcon } from "@/components/icons";
+import { PlusIcon, PolarLogo } from "@/components/icons";
 import { ProductThumb } from "@/components/menu/ProductThumb";
 
 export function CartDrawer() {
@@ -172,7 +172,7 @@ export function CartDrawer() {
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
             <div className="opacity-60">
-              <PlaceholderCup accentColor="#9128DA" className="h-28" />
+              <PolarLogo className="h-28 w-28" />
             </div>
             <p className="font-display text-lg font-semibold text-polar-text">
               Tu carrito está vacío
@@ -205,7 +205,6 @@ export function CartDrawer() {
                   <ProductThumb
                     src={item.imageUrl}
                     alt={item.name}
-                    accentColor={item.accentColor}
                     width={64}
                     height={64}
                     placeholderClassName="h-14"

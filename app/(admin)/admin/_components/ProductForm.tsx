@@ -8,7 +8,7 @@ import { productSchema, type ProductSchema } from "@/lib/validation/schemas";
 import { slugify } from "@/lib/format";
 import { uploadPublicImage } from "@/lib/storage";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { PlaceholderCup } from "@/components/icons";
+import { PolarLogo } from "@/components/icons";
 import { Field } from "@/components/ui/Field";
 import { Alert } from "@/components/ui/Alert";
 import type { Category } from "@/lib/types";
@@ -427,10 +427,7 @@ export function ProductForm({
                 onLoad={() => setPreviewError(false)}
               />
             ) : (
-              <PlaceholderCup
-                accentColor={validColor ? accentColor : "#7C3AED"}
-                className="h-full"
-              />
+              <PolarLogo className="h-full" />
             )}
           </div>
           {imageUrl.trim() && previewError && (

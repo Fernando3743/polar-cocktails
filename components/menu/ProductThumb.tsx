@@ -3,14 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { clsx } from "clsx";
-import { PlaceholderCup } from "@/components/icons";
+import { PolarLogo } from "@/components/icons";
 
 interface ProductThumbProps {
-  /** Public image URL; when empty/null the PlaceholderCup is shown. */
+  /** Public image URL; when empty/null the Polar logo is shown. */
   src: string | null;
   alt: string;
-  /** Drives the PlaceholderCup gradient when there is no image. */
-  accentColor: string;
   /**
    * Layout mode. With `fill`, the parent must be `relative` and sized; the
    * image fills it (storefront card). Otherwise pass `width`/`height` for a
@@ -23,20 +21,19 @@ interface ProductThumbProps {
   sizes?: string;
   /** Extra classes on the <Image> (e.g. object-fit, drop-shadow). */
   className?: string;
-  /** Extra classes on the PlaceholderCup fallback. */
+  /** Extra classes on the Polar logo fallback. */
   placeholderClassName?: string;
 }
 
 /**
- * Renders a product image with a single, centralized fallback to
- * PlaceholderCup — used both when there is no `src` and when the image fails to
- * load (broken/removed URL). This keeps the empty-vs-broken image behavior
+ * Renders a product image with a single, centralized fallback to the Polar
+ * logo — used both when there is no `src` and when the image fails to load
+ * (broken/removed URL). This keeps the empty-vs-broken image behavior
  * consistent across the storefront card, admin list, cart, and checkout (UX-3).
  */
 export function ProductThumb({
   src,
   alt,
-  accentColor,
   fill = false,
   width,
   height,
@@ -47,12 +44,7 @@ export function ProductThumb({
   const [broken, setBroken] = useState(false);
 
   if (!src || broken) {
-    return (
-      <PlaceholderCup
-        accentColor={accentColor}
-        className={placeholderClassName}
-      />
-    );
+    return <PolarLogo className={placeholderClassName} />;
   }
 
   if (fill) {

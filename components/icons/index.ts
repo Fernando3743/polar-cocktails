@@ -11,5 +11,4 @@ export { PhoneIcon } from "./PhoneIcon";
 export { InstagramIcon } from "./InstagramIcon";
 export { FacebookIcon } from "./FacebookIcon";
 export { TikTokIcon } from "./TikTokIcon";
-export { PlaceholderCup } from "./PlaceholderCup";
 export { VolumeMutedIcon } from "./VolumeMutedIcon";

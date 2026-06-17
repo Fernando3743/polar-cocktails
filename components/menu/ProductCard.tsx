@@ -67,7 +67,6 @@ export function ProductCard({ product }: ProductCardProps) {
         <ProductThumb
           src={product.imageUrl}
           alt={product.name}
-          accentColor={product.accentColor}
           fill
           sizes="(min-width: 1024px) 180px, 40vw"
           className="object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.5)]"

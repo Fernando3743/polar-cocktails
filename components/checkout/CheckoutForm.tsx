@@ -306,7 +306,6 @@ export function CheckoutForm() {
                     <ProductThumb
                       src={item.imageUrl}
                       alt={item.name}
-                      accentColor={item.accentColor}
                       width={56}
                       height={56}
                       placeholderClassName="h-12 w-12"

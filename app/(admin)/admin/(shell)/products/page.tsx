@@ -50,7 +50,6 @@ export default async function AdminProductsPage() {
                   <ProductThumb
                     src={product.imageUrl}
                     alt={product.name}
-                    accentColor={product.accentColor}
                     width={48}
                     height={48}
                     placeholderClassName="h-10 w-10"

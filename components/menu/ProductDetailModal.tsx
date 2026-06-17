@@ -81,7 +81,6 @@ export function ProductDetailModal({
               <ProductThumb
                 src={product.imageUrl}
                 alt={product.name}
-                accentColor={product.accentColor}
                 fill
                 sizes="(min-width: 768px) 360px, 86vw"
                 className="object-contain drop-shadow-[0_28px_45px_rgba(0,0,0,0.58)]"
