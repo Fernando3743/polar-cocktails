@@ -101,6 +101,9 @@ are unaffected.
 4. Authentication -> URL Configuration: set the Site URL to the production domain
    and add the production and Vercel preview URLs to Redirect URLs. Skipping this is
    the most common cause of admin-login failures in production.
+5. Authentication -> Sign In / Providers -> Password: turn ON "Leaked password
+   protection" (rejects passwords found in HaveIBeenPwned). Clears the
+   `auth_leaked_password_protection` advisor warning. Requires a paid Supabase plan.
 
 ## 4. Vercel: deploy
 

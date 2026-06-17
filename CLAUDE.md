@@ -34,11 +34,25 @@ There is **no test framework** configured. Verify changes with `tsc --noEmit`, `
 `pnpm env:local` and check the active one with `pnpm env:which` (see `SETUP.md`). Delete the
 symlink for pure demo mode.
 
-Supabase: no CLI is wired into the scripts — apply `supabase/migrations/0001..0012` **in order**
-by hand in the Supabase SQL editor (they are idempotent), or push them through a linked Supabase
-CLI. `0009_admin_rls.sql` requires every admin to already carry an `app_metadata.role` claim, so
-set roles first or you lock admins out. See `SETUP.md` / `LAUNCH_RUNBOOK.md` for the full go-live
-order.
+Supabase migrations live in `supabase/migrations/0001..00NN` (idempotent, applied **in order**).
+The project is **linked** and the remote tracking table is in sync with the files (Local = Remote
+through `0013`; check with `supabase migration list --linked`). The Supabase CLI reads the remote
+DB password from `SUPABASE_DB_PASSWORD`, which lives in `.env.cloud` (gitignored) — export it, then
+run migrations through the CLI:
+
+```bash
+export SUPABASE_DB_PASSWORD="$(grep -E '^SUPABASE_DB_PASSWORD=' .env.cloud | cut -d= -f2-)"
+supabase db push --linked        # apply new migrations to PROD (only untracked versions run)
+supabase migration up --local    # apply to the running local stack (postgres@127.0.0.1:54322)
+supabase migration list --linked # show PROD applied-vs-local sync state
+```
+
+To apply a single migration surgically (or to reconcile), use `psql --single-transaction -f <file>`
+against the **pooler** host in `supabase/.temp/pooler-url` (user `postgres.<ref>`, same
+`SUPABASE_DB_PASSWORD`) — the direct `db.<ref>.supabase.co` host no longer resolves over IPv4.
+Applying by hand in the Supabase SQL editor still works too. `0009_admin_rls.sql` requires every
+admin to already carry an `app_metadata.role` claim, so set roles first or you lock admins out. See
+`SETUP.md` / `LAUNCH_RUNBOOK.md` for the full go-live order.
 
 ## The central architectural idea: demo mode vs DB mode
 
