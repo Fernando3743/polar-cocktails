@@ -17,6 +17,9 @@ export function OrderStatusControl({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [value, setValue] = useState<OrderStatus>(current);
+  // Tracks the last `current` prop we synced from. Must be state (not a ref):
+  // it is read during render, and react-hooks/refs forbids reading refs there.
+  // (React Doctor's "state only used in handlers" hint is a false positive here.)
   const [syncedCurrent, setSyncedCurrent] = useState<OrderStatus>(current);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);

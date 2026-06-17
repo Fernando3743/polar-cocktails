@@ -24,8 +24,10 @@ export default async function OrderConfirmationPage({
 
   // Shop WhatsApp number for the handoff link. Falls back to SEED_SHOP_SETTINGS
   // in demo mode / before migration 0007, so this page stays dynamic but never
-  // requires a DB (consistent with Navbar/InfoRow/MobileBottomNav).
-  const settings = await getShopSettings();
+  // requires a DB (consistent with Navbar/InfoRow/MobileBottomNav). Kicked off
+  // up front (not awaited yet) so it runs in parallel with the optional
+  // authenticated order lookup below — the two reads are independent.
+  const settingsPromise = getShopSettings();
 
   // Reference shown on the "Número de pedido" card: short code when available,
   // otherwise the id from the route.
@@ -72,6 +74,8 @@ export default async function OrderConfirmationPage({
       }
     }
   }
+
+  const settings = await settingsPromise;
 
   return (
     <div className="py-16 sm:py-24">

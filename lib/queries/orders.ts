@@ -50,40 +50,6 @@ function mapOrderItemRow(row: OrderItemRow): OrderItem {
   };
 }
 
-/**
- * Admin: list orders, newest first, optionally filtered by status.
- * Reads are only meaningful with a database (no public SELECT on orders);
- * without env configured this returns an empty list.
- *
- * This returns the full (unpaginated) list and is used by the dashboard for
- * aggregate stats. The orders list page uses `getOrdersPage` for pagination.
- */
-export async function getOrders(status?: OrderStatus): Promise<Order[]> {
-  if (!hasSupabaseEnv()) {
-    return [];
-  }
-
-  const supabase = await createClient();
-  let query = supabase
-    .from("orders")
-    .select(
-      "id, customer_name, customer_phone, address, delivery_type, notes, status, total_cop, short_code, created_at",
-    )
-    .order("created_at", { ascending: false });
-
-  if (status) {
-    query = query.eq("status", status);
-  }
-
-  const { data, error } = await query;
-
-  if (error || !data) {
-    return [];
-  }
-
-  return (data as OrderRow[]).map(mapOrderRow);
-}
-
 /** Default and only page size for the admin orders list. */
 const ORDERS_PAGE_SIZE = 20;
 

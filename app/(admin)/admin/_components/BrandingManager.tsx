@@ -75,6 +75,9 @@ function AssetCard({
   const [status, setStatus] = useState<SlotStatus>({ kind: "idle" });
   const [imgError, setImgError] = useState(false);
   const [hrefValue, setHrefValue] = useState(href);
+  // Tracks the last href prop we synced from. Must be state (not a ref): it is
+  // read during render, and react-hooks/refs forbids reading refs there.
+  // (React Doctor's "state only used in handlers" hint is a false positive here.)
   const [syncedHref, setSyncedHref] = useState(href);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

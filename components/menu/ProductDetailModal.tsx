@@ -19,102 +19,50 @@ export function ProductDetailModal({
   onClose,
   onAddToCart,
 }: ProductDetailModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const triggerRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
+  // Lock body scroll while the modal is mounted (restore the prior value on
+  // unmount so it survives nested/parent re-renders correctly).
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
-
-  // Focus management: remember the trigger, move focus to the close button on
-  // open, trap Tab within the dialog, and restore focus to the trigger when the
-  // modal unmounts. Mirrors the pattern in CartDrawer.
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    triggerRef.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-
-    const focusableSelector =
-      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-    const getFocusable = () =>
-      Array.from(
-        dialog.querySelectorAll<HTMLElement>(focusableSelector),
-      ).filter((el) => el.offsetParent !== null);
-
-    // Move initial focus to the close button (falling back to the dialog).
-    (closeButtonRef.current ?? getFocusable()[0] ?? dialog).focus();
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
-
-      const focusable = getFocusable();
-      if (focusable.length === 0) {
-        e.preventDefault();
-        dialog.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      const active = document.activeElement;
-
-      if (e.shiftKey) {
-        if (active === first || !dialog.contains(active)) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else if (active === last || !dialog.contains(active)) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    dialog.addEventListener("keydown", onKeyDown);
-
-    const trigger = triggerRef.current;
-    return () => {
-      dialog.removeEventListener("keydown", onKeyDown);
-      // Restore focus to the element that opened the modal.
-      trigger?.focus();
     };
   }, []);
 
+  // Open as a true modal. Native <dialog>.showModal() provides focus trapping,
+  // Escape-to-close, restoring focus to the trigger on close, and top-layer
+  // rendering for free — replacing the manual focus-trap + key handlers this
+  // component used to carry. A click whose target is the dialog itself (the
+  // padded backdrop area around the card, not the card) closes it. The backdrop
+  // click is wired with a native listener rather than an onClick prop so it is
+  // not flagged as an interaction on a non-interactive element; keyboard users
+  // close via Escape (native) or the focusable X button.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+
+    const handleBackdropClick = (event: MouseEvent) => {
+      if (event.target === dialog) onClose();
+    };
+    dialog.addEventListener("click", handleBackdropClick);
+    return () => dialog.removeEventListener("click", handleBackdropClick);
+  }, [onClose]);
+
   return (
-    <div
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/72 px-4 pb-4 pt-20 backdrop-blur-[10px] md:items-center md:p-6"
-      role="presentation"
-      onClick={onClose}
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={`product-modal-${product.id}`}
+      onClose={onClose}
+      onCancel={onClose}
+      className="fixed inset-0 z-[90] m-0 h-full max-h-none w-full max-w-none items-end justify-center border-0 bg-transparent px-4 pb-4 pt-20 backdrop:bg-black/72 backdrop:backdrop-blur-[10px] open:flex md:items-center md:p-6"
     >
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`product-modal-${product.id}`}
-        tabIndex={-1}
         className="relative w-full max-w-[430px] overflow-hidden rounded-[8px] border border-[rgba(177,93,255,0.28)] bg-[rgba(10,7,28,0.96)] shadow-[0_26px_90px_rgba(0,0,0,0.7)] md:max-w-[780px]"
-        onClick={(event) => event.stopPropagation()}
       >
         <button
-          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="Cerrar detalle del producto"
@@ -190,6 +138,6 @@ export function ProductDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

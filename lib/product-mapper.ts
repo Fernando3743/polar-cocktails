@@ -26,7 +26,7 @@ export interface ProductRowBase {
 }
 
 /** Normalize the embedded category (object | single-element array | null). */
-export function pickCategory(
+function pickCategory(
   category: EmbeddedCategory,
 ): { name: string; slug: string } | null {
   if (!category) return null;

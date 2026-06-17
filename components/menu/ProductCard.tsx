@@ -1,6 +1,6 @@
 "use client";
 
-import { type KeyboardEvent, type MouseEvent, useState } from "react";
+import { type MouseEvent, useState } from "react";
 import { clsx } from "clsx";
 import { PlusIcon } from "@/components/icons";
 import { ProductDetailModal } from "@/components/menu/ProductDetailModal";
@@ -34,22 +34,21 @@ export function ProductCard({ product }: ProductCardProps) {
     openCart();
   }
 
-  function handleCardKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    setDetailsOpen(true);
-  }
-
   return (
     <>
       <div
-        role="button"
-        tabIndex={0}
-        aria-label={`Ver detalles de ${product.name}`}
-        onClick={() => setDetailsOpen(true)}
-        onKeyDown={handleCardKeyDown}
-        className="relative flex h-[196px] cursor-pointer flex-col overflow-hidden rounded-[8px] border border-[rgba(167,73,197,0.24)] bg-[rgba(13,12,32,0.86)] p-[14px] shadow-[0_12px_28px_rgba(0,0,0,0.46)] transition-[border-color,transform] hover:border-[rgba(184,77,255,0.52)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-polar-purple md:h-[323px] md:p-[14px]"
+        className="relative flex h-[196px] cursor-pointer flex-col overflow-hidden rounded-[8px] border border-[rgba(167,73,197,0.24)] bg-[rgba(13,12,32,0.86)] p-[14px] shadow-[0_12px_28px_rgba(0,0,0,0.46)] transition-[border-color,transform] hover:border-[rgba(184,77,255,0.52)] md:h-[323px] md:p-[14px]"
       >
+      {/* Stretched trigger: a real button covering the card opens the detail
+          modal (keyboard + screen-reader accessible) while the add-to-cart
+          buttons sit above it at a higher z-index and stay independently
+          clickable. */}
+      <button
+        type="button"
+        onClick={() => setDetailsOpen(true)}
+        aria-label={`Ver detalles de ${product.name}`}
+        className="absolute inset-0 z-10 rounded-[8px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-polar-purple"
+      />
       <button
         type="button"
         onClick={handleAdd}
@@ -106,7 +105,7 @@ export function ProductCard({ product }: ProductCardProps) {
           aria-disabled={soldOut}
           aria-label={`Agregar ${product.name} al carrito`}
           className={clsx(
-            "hidden h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.40)] transition-[filter] hover:brightness-110 md:inline-flex",
+            "relative z-20 hidden h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-polar-purple text-white shadow-[0_6px_18px_rgba(146,40,218,0.40)] transition-[filter] hover:brightness-110 md:inline-flex",
             soldOut && "opacity-40 cursor-not-allowed pointer-events-none",
           )}
         >

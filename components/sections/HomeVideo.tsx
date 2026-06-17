@@ -8,17 +8,11 @@ import { Container } from "@/components/ui/Container";
 // back to the local public/ file for offline dev. Set NEXT_PUBLIC_HOME_VIDEO_URL
 // in the cloud env profile.
 //
-// IMPORTANT: the committed asset is a 21MB QuickTime .mov (H.264 inside a MOV
-// container), which Chrome/Firefox/Edge will not reliably play. The MP4 source
-// below is preferred so desktop browsers get a playable file; the .mov is kept
-// only as a last-resort source (mainly for Safari). To make the MP4 real, the
-// file `public/PANTALLA POLAR 2.mov` must be transcoded to H.264/AAC MP4 and
-// placed alongside it as `public/PANTALLA POLAR 2.mp4` (or referenced via
-// NEXT_PUBLIC_HOME_VIDEO_URL). ffmpeg example:
-//   ffmpeg -i "PANTALLA POLAR 2.mov" -c:v libx264 -c:a aac -movflags +faststart "PANTALLA POLAR 2.mp4"
+// The committed asset is `public/PANTALLA POLAR 2.mp4` (H.264/AAC), which plays
+// in every modern browser including Safari. To regenerate it from a source clip:
+//   ffmpeg -i "<source>" -c:v libx264 -c:a aac -movflags +faststart "PANTALLA POLAR 2.mp4"
 const VIDEO_SRC_MP4 =
   process.env.NEXT_PUBLIC_HOME_VIDEO_URL || "/PANTALLA%20POLAR%202.mp4";
-const VIDEO_SRC_MOV = "/PANTALLA%20POLAR%202.mov";
 
 export function HomeVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -88,10 +82,7 @@ export function HomeVideo() {
                 playsInline
                 preload="metadata"
               >
-                {/* MP4 first so Chrome/Firefox/Edge get a playable file. */}
                 <source src={VIDEO_SRC_MP4} type="video/mp4" />
-                {/* QuickTime .mov kept as a last resort (mainly Safari). */}
-                <source src={VIDEO_SRC_MOV} />
                 El video no se pudo reproducir en este navegador.
               </video>
             )}

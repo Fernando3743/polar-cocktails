@@ -163,10 +163,14 @@ function loadFromStorage(): CartLineItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // Defensive: drop any line that fails strict validation.
-    return parsed
-      .filter(isValidCartLine)
-      .map((item) => ({ ...item, stockQty: item.stockQty ?? null }));
+    // Defensive: drop any line that fails strict validation, normalizing
+    // stockQty in the same pass.
+    return parsed.reduce<CartLineItem[]>((acc, item) => {
+      if (isValidCartLine(item)) {
+        acc.push({ ...item, stockQty: item.stockQty ?? null });
+      }
+      return acc;
+    }, []);
   } catch {
     return [];
   }
