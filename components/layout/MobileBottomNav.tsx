@@ -109,7 +109,7 @@ export function MobileBottomNav({
             href={href}
             className={clsx(
               "flex w-[48px] flex-col items-center gap-[3px] text-[10px] font-medium",
-              active ? "text-polar-purple-light" : "text-[#DAD5E7]",
+              active ? "text-[#B45AD2]" : "text-[#DAD5E7]",
             )}
           >
             <Icon className="h-[22px] w-[22px]" />
@@ -137,7 +137,7 @@ export function MobileBottomNav({
             href={href}
             className={clsx(
               "flex w-[48px] flex-col items-center gap-[3px] text-[10px] font-medium",
-              active ? "text-polar-purple-light" : "text-[#DAD5E7]",
+              active ? "text-[#B45AD2]" : "text-[#DAD5E7]",
             )}
           >
             <Icon className="h-[22px] w-[22px]" />

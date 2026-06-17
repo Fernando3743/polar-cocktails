@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VolumeMutedIcon } from "@/components/icons";
 import { Container } from "@/components/ui/Container";
 
@@ -14,10 +14,52 @@ import { Container } from "@/components/ui/Container";
 const VIDEO_SRC_MP4 =
   process.env.NEXT_PUBLIC_HOME_VIDEO_URL || "/PANTALLA%20POLAR%202.mp4";
 
+// Lightweight still frame shown before the clip is fetched. Keeps the box from
+// flashing black and gives the lazy load something to paint immediately.
+const VIDEO_POSTER =
+  process.env.NEXT_PUBLIC_HOME_VIDEO_POSTER_URL || "/polar-video-poster.jpg";
+
 export function HomeVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  // The clip lives below the fold and weighs a couple of MB, so we defer its
+  // network request until the section is about to scroll into view instead of
+  // letting autoplay pull it during initial page load.
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    if (shouldLoad) return;
+    const el = containerRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      // No observer support: load on the next tick so we never trigger a
+      // synchronous re-render from inside the effect body.
+      const timer = setTimeout(() => setShouldLoad(true), 0);
+      return () => clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true);
+        }
+      },
+      { rootMargin: "300px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!shouldLoad || !video) return;
+    // Pick up the <source> that just mounted, then start the muted ambient loop.
+    video.load();
+    video.play().catch(() => {
+      // Autoplay can be blocked; the poster + controls remain as the fallback.
+    });
+  }, [shouldLoad]);
 
   function syncSoundState(video: HTMLVideoElement) {
     setSoundEnabled(!video.muted && video.volume > 0 && !video.paused);
@@ -57,7 +99,10 @@ export function HomeVideo() {
             </p>
           </div>
 
-          <div className="relative overflow-hidden rounded-[8px] border border-[rgba(177,93,255,0.22)] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.42)]">
+          <div
+            ref={containerRef}
+            className="relative overflow-hidden rounded-[8px] border border-[rgba(177,93,255,0.22)] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
+          >
             {videoFailed ? (
               <div className="flex aspect-video w-full items-center justify-center bg-black px-6 text-center text-sm leading-relaxed text-polar-muted">
                 El video no se pudo reproducir en este navegador.
@@ -80,9 +125,10 @@ export function HomeVideo() {
                   syncSoundState(event.currentTarget);
                 }}
                 playsInline
-                preload="metadata"
+                poster={VIDEO_POSTER}
+                preload={shouldLoad ? "auto" : "none"}
               >
-                <source src={VIDEO_SRC_MP4} type="video/mp4" />
+                {shouldLoad && <source src={VIDEO_SRC_MP4} type="video/mp4" />}
                 El video no se pudo reproducir en este navegador.
               </video>
             )}

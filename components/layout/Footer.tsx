@@ -119,7 +119,7 @@ export function Footer({
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="flex min-h-10 items-center rounded-[8px] border border-[rgba(177,93,255,0.16)] bg-[rgba(177,93,255,0.06)] px-3 text-[13px] leading-[1.25] text-[#D8D0E7] transition-colors hover:border-[rgba(177,93,255,0.34)] hover:text-polar-text md:min-h-0 md:border-0 md:bg-transparent md:px-0 md:text-[12px] md:text-[#B9B2C6]"
+                      className="flex min-h-10 items-center rounded-[8px] border border-[rgba(177,93,255,0.16)] bg-[rgba(177,93,255,0.06)] px-3 text-[13px] leading-[1.25] text-[#D8D0E7] transition-colors hover:border-[rgba(177,93,255,0.34)] hover:text-polar-text md:min-h-[24px] md:border-0 md:bg-transparent md:px-0 md:text-[12px] md:text-[#B9B2C6]"
                     >
                       {link.label}
                     </Link>
