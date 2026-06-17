@@ -89,6 +89,7 @@ export function Hero({
             src={mobileSrc}
             alt=""
             priority
+            fetchPriority="high"
             fill
             sizes="(max-width: 767px) 340px, 0px"
             className="object-cover object-[58%_45%] opacity-95"
@@ -171,6 +172,7 @@ export function Hero({
                 src={desktopSrc}
                 alt="Cuatro cócteles granizados Polar sobre pedestales morados"
                 priority
+                fetchPriority="high"
                 {...(heroDesktopUrl ? {} : { placeholder: "blur" as const })}
                 sizes="(min-width: 1024px) 620px, (min-width: 768px) 500px, 0px"
                 className="h-full w-full select-none object-cover object-[50%_45%]"

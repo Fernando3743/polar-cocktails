@@ -27,7 +27,12 @@ const nextConfig: NextConfig = {
     // default deviceSizes and let the optimizer emit suitably small candidates
     // instead of jumping to the 640px deviceSizes floor. All values must stay
     // below the smallest deviceSize (640); they also cover common DPR steps.
-    imageSizes: [90, 180, 340],
+    // 256 gives DPR-2 phones a tighter product-cup candidate than 340.
+    imageSizes: [90, 180, 256, 340],
+    // Allowlist the quality levels we request. The default (75) stays for hero
+    // art; product-grid cups render small, so they ship at 60 (visually lossless
+    // at that size, ~15-20% smaller AVIF). Next 16 requires this allowlist.
+    qualities: [60, 75],
   },
   async headers() {
     // Content-Security-Policy is intentionally Report-Only (not enforcing): the

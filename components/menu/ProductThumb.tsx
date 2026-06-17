@@ -19,6 +19,8 @@ interface ProductThumbProps {
   height?: number;
   /** Responsive sizes hint, only meaningful with `fill`. */
   sizes?: string;
+  /** Optional next/image quality override (must be allowlisted in next.config). */
+  quality?: number;
   /** Extra classes on the <Image> (e.g. object-fit, drop-shadow). */
   className?: string;
   /** Extra classes on the Polar logo fallback. */
@@ -38,6 +40,7 @@ export function ProductThumb({
   width,
   height,
   sizes,
+  quality,
   className,
   placeholderClassName,
 }: ProductThumbProps) {
@@ -54,6 +57,7 @@ export function ProductThumb({
         alt={alt}
         fill
         sizes={sizes}
+        quality={quality}
         className={className}
         onError={() => setBroken(true)}
       />

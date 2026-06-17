@@ -69,6 +69,7 @@ export function ProductCard({ product }: ProductCardProps) {
           alt={product.name}
           fill
           sizes="(min-width: 1024px) 180px, 40vw"
+          quality={60}
           className="object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.5)]"
           placeholderClassName="h-full w-auto drop-shadow-[0_14px_28px_rgba(0,0,0,0.45)]"
         />
