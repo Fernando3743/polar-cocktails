@@ -115,7 +115,6 @@ export function HomeVideo() {
                 aria-label="Video ambiental de la experiencia Polar"
                 className="block aspect-video w-full bg-black object-cover"
                 autoPlay
-                controls
                 loop
                 muted
                 onError={() => setVideoFailed(true)}
