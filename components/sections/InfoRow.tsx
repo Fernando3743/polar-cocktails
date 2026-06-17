@@ -40,8 +40,8 @@ export function InfoRow({
       <Container>
         <div className="glass-card grid gap-6 px-[30px] pt-[18px] pb-[19px] sm:min-h-[141px] sm:grid-cols-3 sm:gap-0">
           <div id="domicilio" className="flex items-start gap-[23px]">
-            <span className="mt-[1px] inline-flex shrink-0">
-              <ScooterIcon className="h-[41px] w-auto" />
+            <span className="mt-[1px] inline-flex shrink-0 text-polar-purple">
+              <ScooterIcon className="h-[40px] w-auto" />
             </span>
             <div className="flex flex-col">
               <h3 className="font-display text-[18px] font-semibold text-white">
@@ -66,8 +66,8 @@ export function InfoRow({
             id="ubicacion"
             className="flex items-start gap-[23px] border-y border-[rgba(255,255,255,0.22)] py-6 sm:border-x sm:border-y-0 sm:px-[30px] sm:py-0"
           >
-            <span className="mt-[1px] inline-flex shrink-0">
-              <MapPinIcon className="h-[43px] w-auto" />
+            <span className="mt-[1px] inline-flex shrink-0 text-polar-purple">
+              <MapPinIcon className="h-[40px] w-auto" />
             </span>
             <div className="flex flex-col">
               <h3 className="font-display text-[18px] font-semibold text-white">
@@ -106,8 +106,8 @@ export function InfoRow({
           </div>
 
           <div id="contacto" className="flex items-start gap-[27px] sm:pl-[30px]">
-            <span className="mt-[1px] inline-flex shrink-0">
-              <PhoneIcon className="h-[43px] w-auto" />
+            <span className="mt-[1px] inline-flex shrink-0 text-polar-purple">
+              <PhoneIcon className="h-[40px] w-auto" />
             </span>
             <div className="flex flex-col">
               <h3 className="font-display text-[18px] font-semibold text-white">
