@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="glass-card w-full max-w-[400px] p-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <PolarLogo className="h-14 w-14 text-polar-text" />
+          <PolarLogo className="h-12" />
           <div>
             <h1 className="font-display text-2xl font-700 text-polar-text">
               Panel de administración

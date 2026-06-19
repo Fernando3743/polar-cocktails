@@ -36,8 +36,11 @@ export function AdminNav({
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-[rgba(167,73,197,0.15)] bg-[rgba(15,10,34,0.5)] p-5 md:sticky md:top-0 md:h-screen md:w-60 md:border-b-0 md:border-r">
-      <Link href="/admin" className="flex items-center gap-3">
-        <PolarLogo className="h-10 w-10 text-polar-text" />
+      <Link
+        href="/admin"
+        className="flex flex-row items-center gap-3 md:flex-col md:items-start md:gap-2"
+      >
+        <PolarLogo className="h-8 md:h-9" />
         <div className="leading-tight">
           <p className="font-display text-base font-700 text-polar-text">
             Polar
