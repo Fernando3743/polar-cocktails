@@ -74,7 +74,7 @@ export function Footer({
                   className="flex items-center"
                   aria-label={`${SITE_NAME} - Inicio`}
                 >
-                  <PolarLogo src={logoUrl} className="h-[74px] w-[74px] text-polar-text md:h-[82px] md:w-[82px]" />
+                  <PolarLogo src={logoUrl} className="h-[40px] md:h-[48px]" />
                 </Link>
                 <div>
                   <p className="font-display text-[18px] font-semibold leading-none text-polar-text">

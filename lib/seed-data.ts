@@ -132,7 +132,7 @@ export const SEED_SITE_ASSETS: SiteAsset[] = [
     href: "",
     sortOrder: 1,
   },
-  { slot: "logo", url: "/images/polar-logo.jpg", href: "", sortOrder: 2 },
+  { slot: "logo", url: "/images/polar-logo.png", href: "", sortOrder: 2 },
   { slot: "og_image", url: "/opengraph-image.png", href: "", sortOrder: 3 },
   {
     slot: "instagram_1",

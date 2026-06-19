@@ -52,7 +52,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
       <Container className="relative z-10 px-5 md:px-9 lg:px-10">
         <nav
           aria-label="Navegación principal"
-          className="flex h-[58px] items-center justify-between md:h-[132px] md:items-start md:pt-[17px]"
+          className="flex h-[58px] items-center justify-between md:h-[112px]"
         >
           <button
             type="button"
@@ -86,18 +86,18 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
             className="hidden items-center md:flex"
             aria-label={`${SITE_NAME} - Inicio`}
           >
-            <PolarLogo src={logoUrl} className="h-[98px] w-[98px] text-polar-text" />
+            <PolarLogo src={logoUrl} className="h-[42px] drop-shadow-[0_0_18px_rgba(183,132,255,0.45)]" />
           </Link>
 
           <Link
             href="/"
-            className="font-display text-[34px] leading-none text-white drop-shadow-[0_0_16px_rgba(183,132,255,0.7)] md:hidden"
+            className="flex items-center md:hidden"
             aria-label={`${SITE_NAME} - Inicio`}
           >
-            POLAR
+            <PolarLogo src={logoUrl} className="h-[30px] drop-shadow-[0_0_12px_rgba(183,132,255,0.6)]" />
           </Link>
 
-          <ul className="mt-[36px] hidden items-center gap-[38px] md:flex">
+          <ul className="hidden items-center gap-[38px] md:flex">
             {NAV_LINKS.map((link) => {
               const active =
                 link.href === "/"
@@ -126,7 +126,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
             })}
           </ul>
 
-          <div className="mt-[20px] mr-[22px] hidden items-center gap-2 md:inline-flex">
+          <div className="mr-[22px] hidden items-center gap-2 md:inline-flex">
             <button
               type="button"
               onClick={openCart}

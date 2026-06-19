@@ -69,7 +69,7 @@ export function Hero({
   const mobileSrc = heroMobileUrl ?? heroMobileImage;
 
   return (
-    <section className="relative overflow-hidden pb-0 md:-mt-[132px] md:pt-[132px]">
+    <section className="relative overflow-hidden pb-0 md:-mt-[112px] md:pt-[164px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div
           className="absolute right-[-48%] top-[28px] h-[300px] w-[370px] rounded-full opacity-55 md:right-[-5%] md:top-[1%] md:h-[560px] md:w-[760px] md:opacity-45"

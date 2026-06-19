@@ -5,14 +5,15 @@ interface IconProps {
   src?: string;
 }
 
-export function PolarLogo({ className, src = "/images/polar-logo.jpg" }: IconProps) {
+export function PolarLogo({ className, src = "/images/polar-logo.png" }: IconProps) {
   return (
     <Image
       src={src}
       alt="Polar Cocktails"
-      width={150}
-      height={150}
-      className={["object-contain", className].filter(Boolean).join(" ")}
+      width={1200}
+      height={255}
+      priority
+      className={["w-auto object-contain", className].filter(Boolean).join(" ")}
     />
   );
 }
