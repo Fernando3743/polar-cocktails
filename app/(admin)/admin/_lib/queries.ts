@@ -1,11 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { SEED_CATEGORIES, SEED_PRODUCTS } from "@/lib/seed-data";
+import {
+  SEED_CATEGORIES,
+  SEED_COMBOS,
+  SEED_PRODUCTS,
+  SEED_PROMO_BANNERS,
+} from "@/lib/seed-data";
 import {
   mapProductRow,
   type ProductRowBase,
 } from "@/lib/product-mapper";
-import type { Category, Order, OrderStatus, Product } from "@/lib/types";
+import type {
+  Category,
+  Combo,
+  Order,
+  OrderStatus,
+  Product,
+} from "@/lib/types";
 import { ORDER_STATUSES } from "./status";
 
 /**
@@ -111,6 +122,166 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
     sortOrder: row.sort_order,
     isActive: row.is_active,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Combos (admin reads). Mirrors the product admin pattern: all rows including
+// inactive, ordered by sort_order, with a seed fallback in demo mode.
+// ---------------------------------------------------------------------------
+interface ComboRow {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price_cop: number;
+  accent_color: string;
+  image_url: string | null;
+  sort_order: number;
+  is_active: boolean;
+  sold_out: boolean;
+}
+
+function mapCombo(row: ComboRow): Combo {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description ?? "",
+    priceCop: row.price_cop,
+    accentColor: row.accent_color,
+    imageUrl: row.image_url,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    soldOut: row.sold_out,
+  };
+}
+
+const COMBO_SELECT =
+  "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, sold_out";
+
+/** All combos (including inactive), ordered by sort_order. Seed fallback. */
+export async function getAdminCombos(): Promise<Combo[]> {
+  if (!hasSupabaseEnv()) {
+    return SEED_COMBOS;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("combos")
+    .select(COMBO_SELECT)
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as ComboRow[]).map(mapCombo);
+}
+
+/** A single combo by id (including inactive), or null. Seed fallback. */
+export async function getAdminComboById(id: string): Promise<Combo | null> {
+  if (!hasSupabaseEnv()) {
+    return SEED_COMBOS.find((c) => c.id === id) ?? null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("combos")
+    .select(COMBO_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return mapCombo(data as ComboRow);
+}
+
+// ---------------------------------------------------------------------------
+// Promo banners (admin reads). The admin shape carries the raw productId (the
+// COMPRAR target) rather than a resolved product, which the form needs.
+// ---------------------------------------------------------------------------
+export interface AdminPromoBanner {
+  id: string;
+  heading: string;
+  imageUrl: string | null;
+  href: string | null;
+  productId: string | null;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+interface PromoBannerRow {
+  id: string;
+  heading: string;
+  image_url: string | null;
+  href: string | null;
+  product_id: string | null;
+  sort_order: number;
+  is_active: boolean;
+}
+
+function mapPromoBanner(row: PromoBannerRow): AdminPromoBanner {
+  return {
+    id: row.id,
+    heading: row.heading,
+    imageUrl: row.image_url,
+    href: row.href,
+    productId: row.product_id,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+  };
+}
+
+const PROMO_BANNER_SELECT =
+  "id, heading, image_url, href, product_id, sort_order, is_active";
+
+/** All promo banners (including inactive), ordered by sort_order. Seed fallback. */
+export async function getAdminPromoBanners(): Promise<AdminPromoBanner[]> {
+  if (!hasSupabaseEnv()) {
+    return SEED_PROMO_BANNERS.map((b) => ({
+      id: b.id,
+      heading: b.heading,
+      imageUrl: b.imageUrl,
+      href: b.href,
+      productId: b.product?.id ?? null,
+      sortOrder: b.sortOrder,
+      isActive: b.isActive,
+    }));
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("promo_banners")
+    .select(PROMO_BANNER_SELECT)
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as PromoBannerRow[]).map(mapPromoBanner);
+}
+
+/** A single promo banner by id, or null. Seed fallback. */
+export async function getAdminPromoBannerById(
+  id: string,
+): Promise<AdminPromoBanner | null> {
+  if (!hasSupabaseEnv()) {
+    const seed = SEED_PROMO_BANNERS.find((b) => b.id === id);
+    if (!seed) return null;
+    return {
+      id: seed.id,
+      heading: seed.heading,
+      imageUrl: seed.imageUrl,
+      href: seed.href,
+      productId: seed.product?.id ?? null,
+      sortOrder: seed.sortOrder,
+      isActive: seed.isActive,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("promo_banners")
+    .select(PROMO_BANNER_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return mapPromoBanner(data as PromoBannerRow);
 }
 
 /** Aggregate figures the dashboard needs, computed without loading every row. */

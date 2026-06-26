@@ -48,14 +48,21 @@ const imageUrlSchema = z
   .trim()
   .refine(isAllowedImageUrl, "Usa una imagen subida (Supabase) o deja vacío.");
 
-const orderItemSchema = z.object({
-  productId: z.string().min(1, "Producto inválido."),
-  qty: z
-    .number()
-    .int()
-    .min(1, "La cantidad debe ser mayor a cero.")
-    .max(99, "Cantidad máxima 99 por producto."),
-});
+const orderItemSchema = z
+  .object({
+    // Each line references exactly one of productId / comboId.
+    productId: z.string().min(1).optional(),
+    comboId: z.string().min(1).optional(),
+    qty: z
+      .number()
+      .int()
+      .min(1, "La cantidad debe ser mayor a cero.")
+      .max(99, "Cantidad máxima 99 por producto."),
+  })
+  .refine((item) => Boolean(item.productId) !== Boolean(item.comboId), {
+    message: "Producto inválido.",
+    path: ["productId"],
+  });
 
 export const orderSchema = z
   .object({
@@ -149,6 +156,57 @@ export const categorySchema = z.object({
 });
 
 export type CategorySchema = z.infer<typeof categorySchema>;
+
+// A combo: like a product, minus category and stock tracking.
+export const comboSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Ingresa un nombre.")
+    .max(120, "El nombre es demasiado largo."),
+  slug: z.string().trim().min(1, "Ingresa un slug."),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción es demasiado larga.")
+    .optional()
+    .transform((v) => v ?? ""),
+  priceCop: z
+    .number()
+    .int()
+    .nonnegative("El precio no puede ser negativo.")
+    .max(100000000),
+  accentColor: hexColor,
+  imageUrl: imageUrlSchema.nullable(),
+  sortOrder: z.number().int().nonnegative().max(1000000),
+  isActive: z.boolean(),
+  soldOut: z.boolean(),
+});
+
+export type ComboSchema = z.infer<typeof comboSchema>;
+
+// A promotional banner: heading + image, with an optional linked product (the
+// COMPRAR target) and an optional outbound href fallback.
+export const promoBannerSchema = z.object({
+  heading: z
+    .string()
+    .trim()
+    .min(2, "Ingresa un titular.")
+    .max(160, "El titular es demasiado largo."),
+  imageUrl: imageUrlSchema.nullable(),
+  productId: z.string().trim().min(1).nullable(),
+  href: z
+    .string()
+    .trim()
+    .url("URL inválida.")
+    .nullable()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : null)),
+  sortOrder: z.number().int().nonnegative().max(1000000),
+  isActive: z.boolean(),
+});
+
+export type PromoBannerSchema = z.infer<typeof promoBannerSchema>;
 
 // Editable image slots, validated for the site_assets table. The url reuses the
 // shared image guard (IMG-1/IMG-2); href is an optional outbound link.

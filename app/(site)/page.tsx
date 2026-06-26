@@ -1,11 +1,15 @@
 import { Hero } from "@/components/sections/Hero";
+import { Nuevo } from "@/components/sections/Nuevo";
 import { Sabores } from "@/components/sections/Sabores";
+import { Combos } from "@/components/sections/Combos";
 import { Nosotros } from "@/components/sections/Nosotros";
 import { InfoRow } from "@/components/sections/InfoRow";
 import { HomeVideo } from "@/components/sections/HomeVideo";
 import { Snowfall } from "@/components/layout/Snowfall";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getProducts, getCategories } from "@/lib/queries/menu";
+import { getCombos } from "@/lib/queries/combos";
+import { getPromoBanners } from "@/lib/queries/promos";
 import { getShopSettings, getSiteAssets } from "@/lib/queries/site";
 import { SEED_SITE_ASSETS } from "@/lib/seed-data";
 import type { AssetSlot } from "@/lib/types";
@@ -26,12 +30,15 @@ function heroOverride(
 export default async function Home() {
   // Site assets + settings fall back to seed data in demo mode and before
   // migration 0007, so "/" still statically generates from seed data.
-  const [products, categories, assets, settings] = await Promise.all([
-    getProducts(),
-    getCategories(),
-    getSiteAssets(),
-    getShopSettings(),
-  ]);
+  const [products, categories, combos, promoBanners, assets, settings] =
+    await Promise.all([
+      getProducts(),
+      getCategories(),
+      getCombos(),
+      getPromoBanners(),
+      getSiteAssets(),
+      getShopSettings(),
+    ]);
 
   const bySlot = new Map(assets.map((a) => [a.slot, a]));
   const heroDesktopUrl = heroOverride(bySlot, "hero_desktop");
@@ -47,7 +54,9 @@ export default async function Home() {
           heroMobileUrl={heroMobileUrl}
           whatsappNumber={settings.whatsappNumber}
         />
+        <Nuevo banners={promoBanners} />
         <Sabores products={products} categories={categories} />
+        <Combos combos={combos} />
         <Nosotros />
         <HomeVideo />
         <InfoRow

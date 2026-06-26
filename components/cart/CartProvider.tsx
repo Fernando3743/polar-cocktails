@@ -8,7 +8,7 @@ import {
   useReducer,
   useState,
 } from "react";
-import type { CartItem, Product } from "@/lib/types";
+import type { CartItem, Combo, Product } from "@/lib/types";
 
 const STORAGE_KEY = "polar_cart";
 
@@ -18,6 +18,34 @@ const STORAGE_KEY = "polar_cart";
 // CartItem consumers are unaffected.
 export type CartLineItem = CartItem & { stockQty?: number | null };
 
+// A normalized add payload: everything a cart line needs except its quantity.
+// Both products and combos collapse to this shape before they enter the cart.
+type AddPayload = Omit<CartLineItem, "qty">;
+
+function productToPayload(product: Product): AddPayload {
+  return {
+    kind: "product",
+    productId: product.id,
+    name: product.name,
+    unitPriceCop: product.priceCop,
+    accentColor: product.accentColor,
+    imageUrl: product.imageUrl,
+    stockQty: product.stockQty ?? null,
+  };
+}
+
+function comboToPayload(combo: Combo): AddPayload {
+  return {
+    kind: "combo",
+    productId: combo.id,
+    name: combo.name,
+    unitPriceCop: combo.priceCop,
+    accentColor: combo.accentColor,
+    imageUrl: combo.imageUrl,
+    stockQty: null, // combos are untracked (only a sold_out flag)
+  };
+}
+
 type CartState = {
   items: CartLineItem[];
   mounted: boolean;
@@ -25,7 +53,7 @@ type CartState = {
 
 type CartAction =
   | { type: "HYDRATE"; items: CartLineItem[] }
-  | { type: "ADD"; product: Product }
+  | { type: "ADD"; payload: AddPayload }
   | { type: "REMOVE"; productId: string }
   | { type: "SET_QTY"; productId: string; qty: number }
   | { type: "CLEAR" };
@@ -45,16 +73,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return { items: action.items, mounted: true };
 
     case "ADD": {
-      const { product } = action;
-      const stockQty = product.stockQty ?? null;
+      const { payload } = action;
+      const stockQty = payload.stockQty ?? null;
       const existing = state.items.find(
-        (item) => item.productId === product.id,
+        (item) => item.productId === payload.productId,
       );
       if (existing) {
         return {
           ...state,
           items: state.items.map((item) =>
-            item.productId === product.id
+            item.productId === payload.productId
               ? {
                   ...item,
                   // Refresh stock from the latest add and clamp the bump.
@@ -66,11 +94,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         };
       }
       const newItem: CartLineItem = {
-        productId: product.id,
-        name: product.name,
-        unitPriceCop: product.priceCop,
-        accentColor: product.accentColor,
-        imageUrl: product.imageUrl,
+        ...payload,
         stockQty,
         qty: clampToStock(1, stockQty),
       };
@@ -116,6 +140,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 interface CartContextValue {
   items: CartLineItem[];
   addItem: (product: Product) => void;
+  addCombo: (combo: Combo) => void;
   removeItem: (productId: string) => void;
   setQty: (productId: string, qty: number) => void;
   clear: () => void;
@@ -138,6 +163,9 @@ function isValidCartLine(item: unknown): item is CartLineItem {
   if (typeof item !== "object" || item === null) return false;
   const candidate = item as Record<string, unknown>;
   return (
+    (candidate.kind === undefined ||
+      candidate.kind === "product" ||
+      candidate.kind === "combo") &&
     typeof candidate.productId === "string" &&
     typeof candidate.name === "string" &&
     typeof candidate.unitPriceCop === "number" &&
@@ -167,7 +195,8 @@ function loadFromStorage(): CartLineItem[] {
     // stockQty in the same pass.
     return parsed.reduce<CartLineItem[]>((acc, item) => {
       if (isValidCartLine(item)) {
-        acc.push({ ...item, stockQty: item.stockQty ?? null });
+        // Default kind for carts persisted before combos existed.
+        acc.push({ ...item, kind: item.kind ?? "product", stockQty: item.stockQty ?? null });
       }
       return acc;
     }, []);
@@ -220,7 +249,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
     return {
       items: state.items,
-      addItem: (product) => dispatch({ type: "ADD", product }),
+      addItem: (product) =>
+        dispatch({ type: "ADD", payload: productToPayload(product) }),
+      addCombo: (combo) =>
+        dispatch({ type: "ADD", payload: comboToPayload(combo) }),
       removeItem: (productId) => dispatch({ type: "REMOVE", productId }),
       setQty: (productId, qty) => dispatch({ type: "SET_QTY", productId, qty }),
       clear: () => dispatch({ type: "CLEAR" }),

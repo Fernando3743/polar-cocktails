@@ -47,7 +47,12 @@ export function CheckoutForm({
   const totalCop = subtotalCop;
 
   const orderItems = useMemo(
-    () => items.map((i) => ({ productId: i.productId, qty: i.qty })),
+    () =>
+      items.map((i) =>
+        i.kind === "combo"
+          ? { comboId: i.productId, qty: i.qty }
+          : { productId: i.productId, qty: i.qty },
+      ),
     [items],
   );
 

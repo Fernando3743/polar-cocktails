@@ -21,7 +21,46 @@ export interface Product {
   stockQty?: number | null; // null/undefined = untracked
 }
 
+// A "combo" is a curated bundle (e.g. drinks + a bottle) sold at a fixed price.
+// It behaves like a Product at checkout (priced server-side, added to the cart,
+// persisted in an order) but lives in its own `combos` table and renders in its
+// own storefront section — it never appears in the menu product grid.
+export interface Combo {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  priceCop: number;
+  accentColor: string;
+  imageUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  soldOut: boolean;
+}
+
+// A "Nuevo" promotional banner: a wide image + heading whose COMPRAR button adds
+// the linked product to the cart (or follows `href` when no product is linked).
+// `product` is resolved server-side so the client can add it without a round trip.
+export interface PromoBanner {
+  id: string;
+  heading: string;
+  imageUrl: string | null;
+  href: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  product: Product | null;
+}
+
+// What a cart line points at: a catalog product or a combo. Both price
+// server-side at checkout through their respective tables.
+export type CartItemKind = "product" | "combo";
+
 export interface CartItem {
+  // The kind of catalog entity this line refers to. Older persisted carts (pre
+  // combos) omit it; consumers default it to "product".
+  kind: CartItemKind;
+  // The product or combo id (depending on `kind`). Kept named `productId` for
+  // backward compatibility with existing cart consumers.
   productId: string;
   name: string;
   unitPriceCop: number;
@@ -45,7 +84,8 @@ export interface OrderInput {
   address?: string;
   deliveryType: DeliveryType;
   notes?: string;
-  items: { productId: string; qty: number }[];
+  // Each line references exactly one of productId / comboId.
+  items: { productId?: string; comboId?: string; qty: number }[];
 }
 
 export interface Order {
@@ -64,7 +104,10 @@ export interface Order {
 
 export interface OrderItem {
   id: string;
-  productId: string;
+  // One of productId / comboId is set; the other is null for that line. The
+  // display name is always the `productName` snapshot taken at order time.
+  productId: string | null;
+  comboId?: string | null;
   productName: string;
   qty: number;
   unitPriceCop: number;

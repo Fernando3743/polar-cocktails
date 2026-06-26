@@ -36,7 +36,9 @@ symlink for pure demo mode.
 
 Supabase migrations live in `supabase/migrations/0001..00NN` (idempotent, applied **in order**).
 The project is **linked** and the remote tracking table is in sync with the files (Local = Remote
-through `0013`; check with `supabase migration list --linked`). The Supabase CLI reads the remote
+through `0013`; `0014_combos_and_promos.sql` — combos + promo_banners tables, polymorphic
+`order_items`, and a re-issued `create_order` — is the first untracked migration to push; check with
+`supabase migration list --linked`). The Supabase CLI reads the remote
 DB password from `SUPABASE_DB_PASSWORD`, which lives in `.env.cloud` (gitignored) — export it, then
 run migrations through the CLI:
 

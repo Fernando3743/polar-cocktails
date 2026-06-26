@@ -17,7 +17,8 @@ interface OrderRow {
 
 interface OrderItemRow {
   id: string;
-  product_id: string;
+  product_id: string | null;
+  combo_id: string | null;
   product_name: string;
   qty: number;
   unit_price_cop: number;
@@ -43,6 +44,7 @@ function mapOrderItemRow(row: OrderItemRow): OrderItem {
   return {
     id: row.id,
     productId: row.product_id,
+    comboId: row.combo_id,
     productName: row.product_name,
     qty: row.qty,
     unitPriceCop: row.unit_price_cop,
@@ -177,7 +179,7 @@ async function getOrderBy(
   const { data: itemsData } = await supabase
     .from("order_items")
     .select(
-      "id, product_id, product_name, qty, unit_price_cop, line_total_cop",
+      "id, product_id, combo_id, product_name, qty, unit_price_cop, line_total_cop",
     )
     .eq("order_id", order.id);
 

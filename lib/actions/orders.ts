@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { requireAdmin } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { SEED_PRODUCTS } from "@/lib/seed-data";
+import { SEED_COMBOS, SEED_PRODUCTS } from "@/lib/seed-data";
 import { orderSchema, orderStatusSchema } from "@/lib/validation/schemas";
 import type { OrderInput, OrderStatus } from "@/lib/types";
 
@@ -68,20 +68,23 @@ function isCreateOrderRpcResult(
 }
 
 /**
- * Collapses repeated productIds into one entry each, summing their quantities
- * while preserving first-seen order. Both pricing branches consume this so a
- * product that appears in several cart lines is priced once.
+ * Collapses repeated catalog references into one entry each, summing their
+ * quantities while preserving first-seen order. Both pricing branches consume
+ * this so a product/combo that appears in several cart lines is priced once.
+ * Lines are keyed by kind + id so a product and a combo never merge, and any
+ * line missing both ids is dropped.
  */
-function dedupeItemsByProductId(
-  items: OrderInput["items"],
-): OrderInput["items"] {
-  const merged = new Map<string, { productId: string; qty: number }>();
+function dedupeItems(items: OrderInput["items"]): OrderInput["items"] {
+  const merged = new Map<string, OrderInput["items"][number]>();
   for (const item of items) {
-    const existing = merged.get(item.productId);
+    const id = item.comboId ?? item.productId;
+    if (!id) continue;
+    const key = item.comboId ? `combo:${id}` : `product:${id}`;
+    const existing = merged.get(key);
     if (existing) {
       existing.qty += item.qty;
     } else {
-      merged.set(item.productId, { productId: item.productId, qty: item.qty });
+      merged.set(key, { ...item, qty: item.qty });
     }
   }
   return Array.from(merged.values());
@@ -124,13 +127,36 @@ export async function createOrder(
   // product across many lines, so merge their quantities into one line each.
   // Bounds amplification together with the per-array cap in orderSchema, and
   // keeps the demo and DB branches pricing an identical, normalized list.
-  const items = dedupeItemsByProductId(data.items);
+  const items = dedupeItems(data.items);
 
   // --- Demo mode (no database): price against the seed catalog. -----------
   if (!hasSupabaseEnv()) {
     const summaryItems: OrderSummary["items"] = [];
     let subtotal = 0;
     for (const item of items) {
+      // Combo line: price from SEED_COMBOS (untracked, sold_out only).
+      if (item.comboId) {
+        const combo = SEED_COMBOS.find(
+          (c) => c.id === item.comboId && c.isActive,
+        );
+        if (!combo || combo.soldOut) {
+          return {
+            ok: false,
+            error: `${combo?.name ?? "Un combo"} no está disponible por ahora.`,
+          };
+        }
+        const lineTotal = combo.priceCop * item.qty;
+        summaryItems.push({
+          productId: combo.id,
+          productName: combo.name,
+          qty: item.qty,
+          unitPriceCop: combo.priceCop, // seed price, never the client value
+          lineTotalCop: lineTotal,
+        });
+        subtotal += lineTotal;
+        continue;
+      }
+
       const product = SEED_PRODUCTS.find(
         (p) => p.id === item.productId && p.isActive,
       );
@@ -182,17 +208,18 @@ export async function createOrder(
       address: data.address ?? null,
       deliveryType: data.deliveryType,
       notes: data.notes ?? null,
-      items: items.map((item) => ({
-        productId: item.productId,
-        qty: item.qty,
-      })),
+      items: items.map((item) =>
+        item.comboId
+          ? { comboId: item.comboId, qty: item.qty }
+          : { productId: item.productId, qty: item.qty },
+      ),
     },
   });
 
   if (error || !rpcResult) {
     // The RPC raises typed tokens; surface useful Spanish copy for each.
     const code = error?.message ?? "";
-    if (code.includes("product_sold_out")) {
+    if (code.includes("product_sold_out") || code.includes("combo_sold_out")) {
       return {
         ok: false,
         error:

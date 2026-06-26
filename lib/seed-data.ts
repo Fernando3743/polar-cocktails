@@ -6,7 +6,9 @@ import {
 } from "@/lib/config";
 import type {
   Category,
+  Combo,
   Product,
+  PromoBanner,
   ShopSettings,
   SiteAsset,
 } from "@/lib/types";
@@ -112,6 +114,84 @@ export const SEED_PRODUCTS: Product[] = [
     sortOrder: 6,
     isActive: true,
     soldOut: false,
+  },
+];
+
+// Seed combos for demo mode (no Supabase) and the static build. In DB mode the
+// combos table starts empty and the owner adds real combos in /admin/combos.
+// Prices mirror the design screenshots; imageUrl is null so PolarLogo stands in.
+export const SEED_COMBOS: Combo[] = [
+  {
+    id: "seed-combo-fiesta",
+    name: "Combo Fiesta",
+    slug: "combo-fiesta",
+    description: "Cuatro granizados + una botella para la fiesta.",
+    priceCop: 139900,
+    accentColor: "#9128DA",
+    imageUrl: null,
+    sortOrder: 1,
+    isActive: true,
+    soldOut: false,
+  },
+  {
+    id: "seed-combo-amigos",
+    name: "Combo Amigos",
+    slug: "combo-amigos",
+    description: "Granizados + cervezas para compartir entre amigos.",
+    priceCop: 89900,
+    accentColor: "#E0A52E",
+    imageUrl: null,
+    sortOrder: 2,
+    isActive: true,
+    soldOut: false,
+  },
+  {
+    id: "seed-combo-noche",
+    name: "Combo Noche",
+    slug: "combo-noche",
+    description: "Granizados + una botella para la noche perfecta.",
+    priceCop: 124900,
+    accentColor: "#5D2DA9",
+    imageUrl: null,
+    sortOrder: 3,
+    isActive: true,
+    soldOut: false,
+  },
+  {
+    id: "seed-combo-magico",
+    name: "Combo Mágico",
+    slug: "combo-magico",
+    description: "Granizados + botella + energizantes para subir la energía.",
+    priceCop: 149900,
+    accentColor: "#B231CA",
+    imageUrl: null,
+    sortOrder: 4,
+    isActive: true,
+    soldOut: false,
+  },
+];
+
+// Seed promotional banners for the "Nuevo" section. Each links to an existing
+// seed product so the COMPRAR button can add to the cart in demo mode. In DB
+// mode the table starts empty and the owner adds banners in /admin/promos.
+export const SEED_PROMO_BANNERS: PromoBanner[] = [
+  {
+    id: "seed-promo-moscow-mule",
+    heading: "¿Ya probaste el nuevo Moscow Mule?",
+    imageUrl: null,
+    href: null,
+    sortOrder: 1,
+    isActive: true,
+    product: SEED_PRODUCTS.find((p) => p.id === "seed-polar-blue") ?? null,
+  },
+  {
+    id: "seed-promo-amarillo",
+    heading: "El invitado que no puede faltar en tu fiesta",
+    imageUrl: null,
+    href: null,
+    sortOrder: 2,
+    isActive: true,
+    product: SEED_PRODUCTS.find((p) => p.id === "seed-tropical-mix") ?? null,
   },
 ];
 

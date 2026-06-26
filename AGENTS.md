@@ -97,9 +97,12 @@ Keep both modes working. The homepage and menu must continue to build and render
 from seed data with no Supabase configuration.
 
 See `SETUP.md` for Supabase setup. Migrations live in
-`supabase/migrations/0001_init.sql` through `0013_advisor_fixes.sql` and must
+`supabase/migrations/0001_init.sql` through `0014_combos_and_promos.sql` and must
 be applied in order (they are idempotent). Apply `0009_admin_rls.sql` only after
 every admin carries an `app_metadata.role` claim, or you lock admins out.
+`0014` adds the `combos` and `promo_banners` tables (storefront "Combos" and
+"Nuevo" sections), makes `order_items` polymorphic (product OR combo), and
+re-issues `create_order` with a combo branch.
 
 ## Architecture Map
 
