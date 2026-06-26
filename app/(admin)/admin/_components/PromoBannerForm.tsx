@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 import {
@@ -11,11 +11,10 @@ import {
   promoBannerSchema,
   type PromoBannerSchema,
 } from "@/lib/validation/schemas";
-import { uploadPublicImage } from "@/lib/storage";
-import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { PolarLogo } from "@/components/icons";
 import { Field } from "@/components/ui/Field";
 import { Alert } from "@/components/ui/Alert";
+import { ImageUploadField } from "./ImageUploadField";
 
 type FieldKey = keyof PromoBannerSchema;
 type FieldErrors = Partial<Record<FieldKey, string>>;
@@ -54,31 +53,7 @@ export function PromoBannerForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabaseReady = hasSupabaseEnv();
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
-    setUploadError(null);
-    setUploading(true);
-    try {
-      const url = await uploadPublicImage("site-assets", file);
-      setImageUrl(url);
-      setPreviewError(false);
-    } catch (err) {
-      setUploadError(
-        err instanceof Error ? err.message : "No pudimos subir la imagen.",
-      );
-    } finally {
-      setUploading(false);
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -87,9 +62,9 @@ export function PromoBannerForm({
 
     const payload: PromoBannerSchema = {
       heading,
-      imageUrl: imageUrl.trim() === "" ? "" : imageUrl.trim(),
+      imageUrl: imageUrl.trim(),
       productId: productId.trim() === "" ? null : productId.trim(),
-      href: href.trim() === "" ? "" : href.trim(),
+      href: href.trim(),
       sortOrder: Number.parseInt(sortOrder, 10) || 0,
       isActive,
     };
@@ -187,54 +162,19 @@ export function PromoBannerForm({
           />
         </Field>
 
-        <Field label="Imagen (opcional)" error={errors.imageUrl}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            disabled={!supabaseReady || uploading}
-            aria-label="Subir imagen"
-            className="hidden"
-          />
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={!supabaseReady || uploading}
-              className="btn-outline-rect h-11 shrink-0 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {uploading
-                ? "Subiendo..."
-                : imageUrl.trim()
-                  ? "Cambiar imagen"
-                  : "Subir imagen"}
-            </button>
-            {imageUrl.trim() && (
-              <button
-                type="button"
-                onClick={() => {
-                  setImageUrl("");
-                  setUploadError(null);
-                  setPreviewError(false);
-                }}
-                className="text-sm text-polar-dim transition-colors hover:text-[#f3a9c1]"
-              >
-                Quitar imagen
-              </button>
-            )}
-          </div>
-          {!supabaseReady && (
-            <p className="text-xs text-polar-dim">
-              Configura Supabase para subir imágenes.
-            </p>
-          )}
-          {uploadError && (
-            <p className="text-xs text-[#f3a9c1]" role="alert">
-              {uploadError}
-            </p>
-          )}
-        </Field>
+        <ImageUploadField
+          bucket="site-assets"
+          imageUrl={imageUrl}
+          error={errors.imageUrl}
+          onUploaded={(url) => {
+            setImageUrl(url);
+            setPreviewError(false);
+          }}
+          onRemove={() => {
+            setImageUrl("");
+            setPreviewError(false);
+          }}
+        />
 
         <label className="flex cursor-pointer items-center gap-3">
           <input

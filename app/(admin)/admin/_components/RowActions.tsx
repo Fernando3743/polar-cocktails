@@ -2,26 +2,29 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteProduct } from "@/lib/actions/products";
 
-export function ProductRowActions({
+export function RowActions({
   id,
   name,
+  onDelete,
 }: {
   id: string;
   name: string;
+  onDelete: (id: string) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function handleDelete() {
-    if (!window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)) {
+    if (
+      !window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)
+    ) {
       return;
     }
     setError(null);
     startTransition(async () => {
-      const result = await deleteProduct(id);
+      const result = await onDelete(id);
       if (!result.ok) {
         setError(result.error ?? "No se pudo eliminar.");
         return;

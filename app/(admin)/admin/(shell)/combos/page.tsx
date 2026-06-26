@@ -4,7 +4,8 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ProductThumb } from "@/components/menu/ProductThumb";
 import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { getAdminCombos } from "../../_lib/queries";
-import { ComboRowActions } from "../../_components/ComboRowActions";
+import { RowActions } from "../../_components/RowActions";
+import { deleteCombo } from "@/lib/actions/combos";
 
 export const dynamic = "force-dynamic";
 
@@ -87,7 +88,11 @@ export default async function AdminCombosPage() {
                   >
                     Editar
                   </Link>
-                  <ComboRowActions id={combo.id} name={combo.name} />
+                  <RowActions
+                    id={combo.id}
+                    name={combo.name}
+                    onDelete={deleteCombo}
+                  />
                 </div>
               </li>
             ))}

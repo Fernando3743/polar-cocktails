@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
-type PublicBucket = "product-images" | "site-assets";
+export type PublicBucket = "product-images" | "site-assets";
 
 /** Image MIME types accepted by the public buckets. */
 const ALLOWED_IMAGE_TYPES = [

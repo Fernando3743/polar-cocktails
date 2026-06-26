@@ -33,7 +33,9 @@ function mapPromoBannerRow(row: PromoBannerRow): PromoBanner {
   // Only surface an active product as the COMPRAR target; an inactive/sold-out
   // product would fail at checkout, so fall back to href in that case.
   const product =
-    productRow && productRow.is_active ? mapProductRow(productRow) : null;
+    productRow && productRow.is_active && !productRow.sold_out
+      ? mapProductRow(productRow)
+      : null;
   return {
     id: row.id,
     heading: row.heading,

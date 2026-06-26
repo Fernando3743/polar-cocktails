@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { requireAdmin, isForeignKeyViolation } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import {
   promoBannerSchema,
   type PromoBannerSchema,
@@ -118,9 +118,6 @@ export async function deletePromoBanner(
     .eq("id", id)
     .select("id");
   if (error) {
-    if (isForeignKeyViolation(error)) {
-      return { ok: false, error: "No pudimos eliminar el banner." };
-    }
     return { ok: false, error: "No pudimos eliminar el banner." };
   }
   if (!data || data.length === 0) {

@@ -45,6 +45,9 @@ function toRow(input: ProductSchema, categoryId: string) {
 
 function revalidateStorefrontAndAdmin() {
   revalidateTag("products", "max");
+  // Promo banners embed the linked product, so a product change can leave a
+  // stale/dangling COMPRAR target in the promo_banners cache (tagged below).
+  revalidateTag("promo_banners", "max");
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/admin/products");

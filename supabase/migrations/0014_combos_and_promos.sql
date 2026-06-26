@@ -26,8 +26,8 @@
 -- ---------------------------------------------------------------------------
 create table if not exists combos (
   id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  slug        text not null unique,
+  name        text not null check (char_length(name) >= 1),
+  slug        text not null unique check (char_length(slug) >= 1),
   description text not null default '',
   price_cop   integer not null check (price_cop >= 0),
   accent_color text not null default '#9128da'
@@ -65,6 +65,7 @@ create table if not exists promo_banners (
 );
 
 create index if not exists promo_banners_sort_order_idx on promo_banners (sort_order);
+create index if not exists promo_banners_product_id_idx on promo_banners (product_id);
 
 drop trigger if exists promo_banners_set_updated_at on promo_banners;
 create trigger promo_banners_set_updated_at
@@ -120,6 +121,8 @@ alter table order_items alter column product_id drop not null;
 
 alter table order_items
   add column if not exists combo_id uuid references combos (id) on delete restrict;
+
+create index if not exists order_items_combo_id_idx on order_items (combo_id);
 
 do $$
 begin
@@ -214,13 +217,13 @@ begin
     end if;
 
     if v_combo_id is not null then
-      -- Combo line: price from the combos table, locked for the transaction.
+      -- Combo line: price read from the combos table. No FOR UPDATE: this
+      -- function never mutates the combos row (sold_out is read, never written).
       select id, name, price_cop, sold_out
         into v_combo
         from combos
        where id = v_combo_id
-         and is_active = true
-       for update;
+         and is_active = true;
 
       if not found then
         raise exception 'combo_not_found';

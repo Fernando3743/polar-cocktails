@@ -8,6 +8,7 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { requireAdmin } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { SEED_COMBOS, SEED_PRODUCTS } from "@/lib/seed-data";
+import { lineItemKey } from "@/lib/line-item";
 import { orderSchema, orderStatusSchema } from "@/lib/validation/schemas";
 import type { OrderInput, OrderStatus } from "@/lib/types";
 
@@ -79,7 +80,7 @@ function dedupeItems(items: OrderInput["items"]): OrderInput["items"] {
   for (const item of items) {
     const id = item.comboId ?? item.productId;
     if (!id) continue;
-    const key = item.comboId ? `combo:${id}` : `product:${id}`;
+    const key = lineItemKey(item.comboId ? "combo" : "product", id);
     const existing = merged.get(key);
     if (existing) {
       existing.qty += item.qty;
@@ -182,9 +183,9 @@ export async function createOrder(
       });
       subtotal += lineTotal;
     }
-    if (subtotal <= 0) {
-      return { ok: false, error: "Tu carrito está vacío." };
-    }
+    // The genuine empty-cart case is already rejected by orderSchema
+    // (items.min(1)); a zero-priced (free) combo is valid and must pass here,
+    // matching the DB-mode RPC which has no zero-total guard.
     // Nothing is persisted in demo mode; still return a generated id and the
     // same server-trusted summary shape the DB branch produces.
     return {

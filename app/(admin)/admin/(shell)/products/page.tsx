@@ -4,7 +4,8 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ProductThumb } from "@/components/menu/ProductThumb";
 import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { getAdminProducts } from "../../_lib/queries";
-import { ProductRowActions } from "../../_components/ProductRowActions";
+import { RowActions } from "../../_components/RowActions";
+import { deleteProduct } from "@/lib/actions/products";
 
 export const dynamic = "force-dynamic";
 
@@ -92,7 +93,11 @@ export default async function AdminProductsPage() {
                   >
                     Editar
                   </Link>
-                  <ProductRowActions id={product.id} name={product.name} />
+                  <RowActions
+                    id={product.id}
+                    name={product.name}
+                    onDelete={deleteProduct}
+                  />
                 </div>
               </li>
             ))}

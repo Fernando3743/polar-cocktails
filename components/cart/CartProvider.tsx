@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import type { CartItem, Combo, Product } from "@/lib/types";
+import { lineItemKey } from "@/lib/line-item";
 
 const STORAGE_KEY = "polar_cart";
 
@@ -75,14 +76,17 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "ADD": {
       const { payload } = action;
       const stockQty = payload.stockQty ?? null;
+      // Identity is kind + id, so a product and a combo sharing an id never
+      // collapse into the same line.
+      const payloadKey = lineItemKey(payload.kind, payload.productId);
       const existing = state.items.find(
-        (item) => item.productId === payload.productId,
+        (item) => lineItemKey(item.kind, item.productId) === payloadKey,
       );
       if (existing) {
         return {
           ...state,
           items: state.items.map((item) =>
-            item.productId === payload.productId
+            lineItemKey(item.kind, item.productId) === payloadKey
               ? {
                   ...item,
                   // Refresh stock from the latest add and clamp the bump.

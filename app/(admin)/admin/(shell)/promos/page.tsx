@@ -3,7 +3,8 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ProductThumb } from "@/components/menu/ProductThumb";
 import { DemoModeNotice } from "@/components/ui/DemoModeNotice";
 import { getAdminPromoBanners, getAdminProducts } from "../../_lib/queries";
-import { PromoRowActions } from "../../_components/PromoRowActions";
+import { RowActions } from "../../_components/RowActions";
+import { deletePromoBanner } from "@/lib/actions/promos";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,11 @@ export default async function AdminPromosPage() {
                   >
                     Editar
                   </Link>
-                  <PromoRowActions id={banner.id} name={banner.heading} />
+                  <RowActions
+                    id={banner.id}
+                    name={banner.heading}
+                    onDelete={deletePromoBanner}
+                  />
                 </div>
               </li>
             ))}
