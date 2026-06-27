@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ln -sf .env.localdb .env.local && next dev",
+    "dev": "ln -sf .env.localdb .env.local && devport next dev",
     "prod": "ln -sf .env.cloud .env.local && next dev",
     "build": "next build",
     "start": "next start",

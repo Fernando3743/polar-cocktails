@@ -64,3 +64,6 @@ Thumbs.db
 
 # reference-only static port of the storefront — never ship
 /template/
+
+# Machine-specific local ports, written by devport
+local.config.json
