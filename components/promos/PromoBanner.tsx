@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
+import { PRODUCT_IMAGE_FALLBACK } from "@/lib/config";
 import type { PromoBanner as PromoBannerType } from "@/lib/types";
 
 interface PromoBannerProps {
@@ -29,7 +30,7 @@ export function PromoBanner({ banner }: PromoBannerProps) {
 
   return (
     <div className="relative flex min-h-[200px] items-stretch overflow-hidden rounded-[16px] bg-[linear-gradient(110deg,#19034b,#5d2da9,#b231ca)] shadow-[0_18px_40px_rgba(0,0,0,0.45)] md:min-h-[230px]">
-      {imageUrl && !broken && (
+      {imageUrl && !broken ? (
         <Image
           src={imageUrl}
           alt={heading}
@@ -37,6 +38,17 @@ export function PromoBanner({ banner }: PromoBannerProps) {
           sizes="(min-width: 768px) 720px, 100vw"
           className="object-cover"
           onError={() => setBroken(true)}
+        />
+      ) : (
+        /* No own image: show the generic product cup on the right instead of a
+           bare gradient. It is decorative here, so alt is empty. */
+        <Image
+          src={PRODUCT_IMAGE_FALLBACK}
+          alt=""
+          width={240}
+          height={300}
+          sizes="(min-width: 768px) 240px, 45vw"
+          className="absolute bottom-0 right-[8%] h-[80%] w-auto object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.4)]"
         />
       )}
 

@@ -22,6 +22,12 @@ export const MAPS_URL =
 
 export const SITE_NAME = "Polar";
 
+// Generic product photo (transparent, trimmed cup) used as the image fallback
+// for combos and promo banners that have no own imageUrl yet, instead of the
+// bare Polar logo placeholder.
+export const PRODUCT_IMAGE_FALLBACK =
+  "/images/polar-cocktail-product-transparent-trimmed.png";
+
 // Social profile URLs. Hrefs are "#" placeholders until the shop's real
 // profiles land; once a real URL is set here it auto-populates the Footer
 // links and the Restaurant node's sameAs in components/seo/JsonLd.tsx.
