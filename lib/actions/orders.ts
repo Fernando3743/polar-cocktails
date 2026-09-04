@@ -91,6 +91,9 @@ function dedupeItems(items: OrderInput["items"]): OrderInput["items"] {
   return Array.from(merged.values());
 }
 
+/** Per-line cap enforced by orderItemSchema; re-checked after lines are merged. */
+const MAX_QTY_PER_LINE = 99;
+
 /**
  * Creates an order. The price of every line is re-fetched server-side
  * (from the DB, or from SEED_PRODUCTS in demo mode) and all totals are
@@ -129,6 +132,13 @@ export async function createOrder(
   // Bounds amplification together with the per-array cap in orderSchema, and
   // keeps the demo and DB branches pricing an identical, normalized list.
   const items = dedupeItems(data.items);
+  // The schema caps each line at 99, but merging repeated lines can exceed it.
+  if (items.some((item) => item.qty > MAX_QTY_PER_LINE)) {
+    return {
+      ok: false,
+      error: `Cantidad máxima ${MAX_QTY_PER_LINE} por producto.`,
+    };
+  }
 
   // --- Demo mode (no database): price against the seed catalog. -----------
   if (!hasSupabaseEnv()) {

@@ -48,6 +48,21 @@ const imageUrlSchema = z
   .trim()
   .refine(isAllowedImageUrl, "Usa una imagen subida (Supabase) o deja vacío.");
 
+// Optional outbound link (promo banners, footer/social assets). Rendered as a
+// raw href, so only web URLs are accepted: zod's `.url()` alone also passes
+// `javascript:` / `data:` schemes, which would execute in the storefront.
+const outboundHrefSchema = z
+  .string()
+  .trim()
+  .url("URL inválida.")
+  .refine(
+    (v) => /^https?:\/\//i.test(v),
+    "La URL debe empezar con http:// o https://.",
+  )
+  .nullable()
+  .or(z.literal(""))
+  .transform((v) => (v ? v : null));
+
 const orderItemSchema = z
   .object({
     // Each line references exactly one of productId / comboId.
@@ -195,13 +210,7 @@ export const promoBannerSchema = z.object({
     .max(160, "El titular es demasiado largo."),
   imageUrl: imageUrlSchema.nullable(),
   productId: z.string().trim().min(1).nullable(),
-  href: z
-    .string()
-    .trim()
-    .url("URL inválida.")
-    .nullable()
-    .or(z.literal(""))
-    .transform((v) => (v ? v : null)),
+  href: outboundHrefSchema,
   sortOrder: z.number().int().nonnegative().max(1000000),
   isActive: z.boolean(),
 });
@@ -225,13 +234,7 @@ const ASSET_SLOTS = [
 export const siteAssetSchema = z.object({
   slot: z.enum(ASSET_SLOTS),
   url: imageUrlSchema,
-  href: z
-    .string()
-    .trim()
-    .url("URL inválida.")
-    .nullable()
-    .or(z.literal(""))
-    .transform((v) => (v ? v : null)),
+  href: outboundHrefSchema,
   sortOrder: z.number().int().nonnegative().max(1000000),
 });
 

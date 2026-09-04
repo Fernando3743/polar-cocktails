@@ -82,7 +82,9 @@ export function ProductCard({ product }: ProductCardProps) {
       )}
 
       {soldOut && (
-        <span className="absolute right-[10px] top-[10px] z-20 inline-flex h-[17px] items-center rounded-full border border-[rgba(126,119,144,0.5)] bg-[rgba(13,12,32,0.9)] px-[9px] text-[8px] font-bold uppercase tracking-wide text-polar-dim md:text-[9px]">
+        // On mobile the round "+" button occupies the top-right corner, so the
+        // badge sits to its left; on md+ that button moves to the price row.
+        <span className="absolute right-[44px] top-[13px] z-20 inline-flex h-[17px] items-center rounded-full border border-[rgba(126,119,144,0.5)] bg-[rgba(13,12,32,0.9)] px-[9px] text-[8px] font-bold uppercase tracking-wide text-polar-dim md:right-[10px] md:top-[10px] md:text-[9px]">
           Agotado
         </span>
       )}

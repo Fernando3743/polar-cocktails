@@ -58,10 +58,13 @@ const getCachedProducts = unstable_cache(
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("products")
+      // `!inner` + the nested filter drop products whose category is inactive,
+      // matching the tabs (which list active categories only).
       .select(
-        "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, sold_out, stock_qty, category:categories(name, slug)",
+        "id, name, slug, description, price_cop, accent_color, image_url, sort_order, is_active, sold_out, stock_qty, category:categories!inner(name, slug)",
       )
       .eq("is_active", true)
+      .eq("category.is_active", true)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
 

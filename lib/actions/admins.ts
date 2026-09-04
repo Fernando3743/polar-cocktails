@@ -30,6 +30,16 @@ function roleOf(appMetadata: unknown): unknown {
   return (appMetadata as { role?: unknown } | undefined)?.role;
 }
 
+/**
+ * True when the Auth user is one of the admins this screen manages (a role
+ * claim, or the configured super admin). The mutations below run with the
+ * service-role key, so they must refuse any other Auth user outright.
+ */
+function isManagedAdmin(user: { email?: string; app_metadata?: unknown }): boolean {
+  const role = roleOf(user.app_metadata);
+  return isSuperAdmin(user.email) || role === "admin" || role === "super_admin";
+}
+
 export async function listAdmins(): Promise<ListAdminsResult> {
   if (!hasSupabaseEnv()) return { ok: false, error: ENV_ERROR };
   const guard = await requireSuperAdmin();
@@ -123,7 +133,7 @@ export async function deleteAdmin(userId: string): Promise<AdminActionResult> {
   const admin = createAdminClient();
   const { data: target, error: lookupError } =
     await admin.auth.admin.getUserById(userId);
-  if (lookupError || !target.user) {
+  if (lookupError || !target.user || !isManagedAdmin(target.user)) {
     return { ok: false, error: "No encontramos ese administrador." };
   }
   if (isSuperAdmin(target.user.email)) {
@@ -159,7 +169,7 @@ export async function resetAdminPassword(
   const admin = createAdminClient();
   const { data: target, error: lookupError } =
     await admin.auth.admin.getUserById(userId);
-  if (lookupError || !target.user) {
+  if (lookupError || !target.user || !isManagedAdmin(target.user)) {
     return { ok: false, error: "No encontramos ese administrador." };
   }
   if (isSuperAdmin(target.user.email)) {

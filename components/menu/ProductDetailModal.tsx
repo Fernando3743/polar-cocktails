@@ -59,8 +59,13 @@ export function ProductDetailModal({
       onCancel={onClose}
       className="fixed inset-0 z-[90] m-0 h-full max-h-none w-full max-w-none items-end justify-center border-0 bg-transparent px-4 pb-4 pt-20 backdrop:bg-black/72 backdrop:backdrop-blur-[10px] open:flex md:items-center md:p-6"
     >
+      {/* The card is capped to the space left inside the dialog padding
+          (pt-20 + pb-4 = 6rem on mobile, p-6 = 3rem on md+) and the grid
+          scrolls inside it. Without the cap a tall card overflowed the
+          locked-scroll viewport on phones (top of the image and the close
+          button pushed off-screen, nothing scrollable). */}
       <div
-        className="relative w-full max-w-[430px] overflow-hidden rounded-[8px] border border-[rgba(177,93,255,0.28)] bg-[rgba(10,7,28,0.96)] shadow-[0_26px_90px_rgba(0,0,0,0.7)] md:max-w-[780px]"
+        className="relative flex max-h-[calc(100dvh-6rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-[8px] border border-[rgba(177,93,255,0.28)] bg-[rgba(10,7,28,0.96)] shadow-[0_26px_90px_rgba(0,0,0,0.7)] md:max-h-[calc(100dvh-3rem)] md:max-w-[780px]"
       >
         <button
           type="button"
@@ -71,7 +76,7 @@ export function ProductDetailModal({
           X
         </button>
 
-        <div className="grid gap-0 md:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid min-h-0 gap-0 overflow-y-auto overscroll-contain md:grid-cols-[0.95fr_1.05fr]">
           <div className="relative flex min-h-[284px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_20%,rgba(177,93,255,0.34),rgba(9,6,24,0)_58%)] p-6 md:min-h-[420px]">
             <div
               className="absolute inset-8 rounded-full blur-3xl"

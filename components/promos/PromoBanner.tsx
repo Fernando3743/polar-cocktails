@@ -21,9 +21,11 @@ export function PromoBanner({ banner }: PromoBannerProps) {
   const { addItem, openCart } = useCart();
   const [broken, setBroken] = useState(false);
   const { product, imageUrl, heading } = banner;
+  // Same sold-out rule as ProductCard: tracked stock at zero counts as sold out.
+  const soldOut = !!product && (product.soldOut || product.stockQty === 0);
 
   function handleBuy() {
-    if (!product) return;
+    if (!product || soldOut) return;
     addItem(product);
     openCart();
   }
@@ -64,10 +66,16 @@ export function PromoBanner({ banner }: PromoBannerProps) {
           <button
             type="button"
             onClick={handleBuy}
-            aria-label={`Comprar ${product.name}`}
-            className="inline-flex h-[34px] w-fit items-center justify-center rounded-[8px] border border-white/40 bg-white/10 px-[20px] text-[12px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+            disabled={soldOut}
+            aria-disabled={soldOut}
+            aria-label={
+              soldOut
+                ? `${product.name} agotado`
+                : `Comprar ${product.name}`
+            }
+            className="inline-flex h-[34px] w-fit items-center justify-center rounded-[8px] border border-white/40 bg-white/10 px-[20px] text-[12px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white/10"
           >
-            Comprar
+            {soldOut ? "Agotado" : "Comprar"}
           </button>
         ) : (
           <Link
