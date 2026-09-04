@@ -170,7 +170,10 @@ function AssetCard({
             "file:mr-3 file:cursor-pointer file:rounded-lg file:border-0",
             "file:bg-[linear-gradient(105deg,#a749c5,#9128da)] file:px-4 file:py-2",
             "file:text-xs file:font-600 file:text-white",
-            "disabled:cursor-not-allowed disabled:opacity-50 file:disabled:cursor-not-allowed",
+            // The state variant must come BEFORE the file variant: a pseudo-class
+            // may not follow the ::file-selector-button pseudo-element, and
+            // Tailwind 4.3+ rejects the invalid selector instead of dropping it.
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:file:cursor-not-allowed",
           )}
         />
         {!hasEnv && (

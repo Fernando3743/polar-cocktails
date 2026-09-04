@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Reference-only static port of the storefront — never ship, never lint.
     "template/**",
+    // Supabase CLI local state (generated edge-runtime bundles, secrets).
+    "supabase/.temp/**",
+    "supabase/.branches/**",
   ]),
 ]);
 

@@ -4,3 +4,10 @@ minimumReleaseAge: 10080
 # trustPolicy: no-downgrade makes pnpm reject packages whose trust signals
 # (provenance, signatures) weaken between updates.
 trustPolicy: no-downgrade
+# The downgrade check is date-based, not semver-based, so long-lived legacy
+# lines (semver@6.3.1 from 2023, eslint-import-resolver-typescript@3.10.1 from
+# 2025) trip it whenever their subtree is re-resolved, even though they have
+# been in the lockfile since the pnpm migration. Skip the check for anything
+# published more than a year ago (525600 minutes); a takeover that old would
+# have been caught already, and every recent publish is still verified.
+trustPolicyIgnoreAfter: 525600

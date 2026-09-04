@@ -69,7 +69,6 @@ export function ComboCard({ combo }: ComboCardProps) {
           alt={combo.name}
           fill
           sizes="(min-width: 768px) 280px, 55vw"
-          quality={70}
           className="object-contain p-3 drop-shadow-[0_14px_24px_rgba(0,0,0,0.28)]"
           placeholderClassName="mx-auto h-full w-auto p-6 opacity-30"
           fallbackSrc={PRODUCT_IMAGE_FALLBACK}
